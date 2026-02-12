@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Personal</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/482264d866.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <div class="title-dashboard">
+        <h1>Dashboard</h1>
+    </div>
+    <div class="main-container">
+
+        <section class="col-3">
+            <div class="small-card">
+                <div class="clock-section">
+                    <span id="hour">00</span> :
+                    <span id="minutes">00</span> :
+                    <span id="seconds">00</span>
+                </div>
+
+                <div id="date" class="date-section">
+                    <span id="day-name"></span>,
+                    <span id="day-number"></span> de
+                    <span id="month"></span> de
+                    <span id="year"></span>
+                </div>
+            </div>
+            <div class="small-card">
+                <blockquote class="motivational-quote">
+                    <p>"Cada línea de código que escribes hoy es un paso más hacia el programador que quieres ser
+                        mañana."
+                    </p>
+                </blockquote>
+            </div>
+
+            <div class="small-card">
+                <div class="city-weather-info ">
+                    <p class="city-name">Málaga</p>
+                </div>
+                <div class="weather-container">
+                    <div class="weather-logo">
+                    </div>
+                    <div class="weather-text">
+                        <p class="temperature"></p>
+                        <p class="humidity"></p>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <section class="col-1">
+            <div class="large-card">
+                <div class="card">
+                    <div class="title-card">
+                        <h2>Tareas</h2>
+                    </div>
+                    <div class="col-2">
+                        <form>
+                            <input id="task-input" type="text" placeholder="Estudiar para el examen...">
+                            <button id="add-task-btn" type="submit">+</button>
+                        </form>
+                    </div>
+                    <div class="col-3">
+                        <div class="tasks-container">
+                            <div class="pending-tasks">
+                                <h2>Pendientes</h2>
+                                <ul id="pending-list" data-state="pending">
+                                </ul>
+                            </div>
+
+                            <div class="progress-tasks">
+                                <h2>En progreso</h2>
+                                <ul id="progress-list" data-state="progress">
+                                </ul>
+                            </div>
+                            <div class="completed-tasks">
+                                <h2>Completadas</h2>
+                                <ul id="completed-list" data-state="completed">
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="col-2">
+            <div class="mid-card">
+                <div class="card">
+                    <div class="title-card">
+                        <h2>Notas Rápidas</h2>
+                    </div>
+                    <textarea id="quick-notes" placeholder="Escribe tus notas aquí..."></textarea>
+                </div>
+            </div>
+            <div class="mid-card">
+                <div class="card">
+                    <div class="title-card">
+                        <h2>Pomodoro</h2>
+                    </div>
+                    <div class="pomodoro-container">
+                        <div class="timer-display">
+                            <span id="pomodoro-minutes">25</span>:
+                            <span id="pomodoro-seconds">00</span>
+                        </div>
+                        <div class="pomodoro-controls">
+                            <button id="start-pomodoro-btn"><i class="fas fa-play"></i></button>
+                            <button id="pause-pomodoro-btn"><i class="fas fa-pause"></i></button>
+                            <button id="reset-pomodoro-btn"><i class="fas fa-redo"></i></button>
+                        </div>
+                        <div class="pomodoro-info">
+                            <p>Modo: <span id="pomodoro-mode">Trabajo</span></p>
+                            <p>Pomodoros: <span id="pomodoro-count">0</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </div>
+    <script src="script.js">
+    </script>
+</body>
+
+</html>

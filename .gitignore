@@ -1,0 +1,19 @@
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Editores
+.vscode/
+.idea/
+
+# Temporal
+*.log
+*.tmp
+node_modules/
+
+# Archivos específicos (si tienes)
+config.php
+.env
+
+# Archivos de backup
+backup/
