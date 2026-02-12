@@ -2,9 +2,6 @@
 
 Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador Pomodoro y widget del clima en tiempo real.
 
-![Dashboard Preview](https://via.placeholder.com/800x400/667eea/ffffff?text=Dashboard+Personal)
-<!-- Reemplaza este enlace con una captura real de tu dashboard -->
-
 ## ✨ Características
 
 ### 📋 Sistema de Tareas Kanban
