@@ -154,4 +154,8 @@ Este proyecto es de código abierto y está disponible para uso personal y educa
 
 ---
 
+<<<<<<< HEAD
 ⭐ Si te gusta este proyecto, dale una estrella en GitHub!
+=======
+⭐ Si te gusta este proyecto, dale una estrella en GitHub!
+>>>>>>> 0e24a36591e4c63961da9a4cd51640295e939f31
