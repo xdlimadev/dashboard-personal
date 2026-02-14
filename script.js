@@ -55,7 +55,6 @@ function addTask(taskInput, taskList) {
 
     tasks.push(task);
 
-    console.log("Tarea añadida:", task.id, "State: ", task.state);
     const li = createTaskElement(taskInput.value, task.id, task.state);
     taskList.appendChild(li);
 
@@ -121,11 +120,10 @@ function loadTasks() {
         "completed": document.getElementById("completed-list")
     };
 
-    tasks.sort((a, b) => (a.order || 0 ) - (b.order || 0));
+    tasks.sort((a, b) => (a.order || 0) - (b.order || 0));
 
     // Si hay tareas guardadas, las cargamos en el array
     for (const task of tasks) {
-        console.log("Cargando tarea:", task.id, "State: ", task.state);
         const li = createTaskElement(task.text, task.id, task.state);
         const targetList = lists[task.state];
         if (targetList) targetList.appendChild(li);
@@ -144,9 +142,8 @@ function createTaskElement(taskText, taskId, taskState) {
 
     li.addEventListener("dragstart", (e) => {
         e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain" , taskId.toString());
+        e.dataTransfer.setData("text/plain", taskId.toString());
         li.classList.add("dragging");
-        console.log("Drag started for task ID:", taskId);
     });
 
     li.addEventListener("dragend", (e) => {
@@ -209,7 +206,6 @@ function setupDragAndDrop() {
 
         // Manejar el evento de soltar una tarea en esta lista
         list.addEventListener("drop", (e) => {
-            console.log("Drop event detected on list:", list.id);
             e.preventDefault();
 
             document.querySelectorAll('.drag-over-top, .drag-over-bottom').forEach(el => {
@@ -217,25 +213,19 @@ function setupDragAndDrop() {
             });
 
             const taskId = e.dataTransfer.getData("text/plain");
-            console.log("Task ID from drag data:", taskId);
 
             const draggable = document.querySelector(`li[data-id="${taskId}"]`);
-            console.log("Draggable element found:", draggable);
 
             if (!draggable) {
-                console.log("No draggable element found for task ID:", taskId);
                 return;
             }
 
             const afterElement = getDragAfterElement(list, e.clientY);
-            console.log("After element:", afterElement);
 
             if (afterElement == null) {
                 list.appendChild(draggable);
-                console.log("añadido al final");
             } else {
                 list.insertBefore(draggable, afterElement);
-                console.log("insertado antes de afterElement: ", afterElement);
             }
             updateTaskState(taskId, list.dataset.state);
             updateTaskOrder(list.id);
@@ -300,32 +290,150 @@ function updateTaskOrder(listId) {
 
 
 // ========== CLIMA ==========
-let apiWeather = "https://api.el-tiempo.net/json/v3/provincias/29/municipios/29038";
+let API_KEY = "e921e75da4f3ceb1bd2690027a03c9c4";
+let weatherCoords = null;
+
+function getUserLocation() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject(new Error("Geolocalización no soportada"));
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                resolve({
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                });
+            },
+            (error) => {
+                reject(error);
+            }
+        );
+    });
+}
+
+function showCityModal() {
+    const modal = document.getElementById("city-modal");
+    if (modal) modal.style.display = "flex";
+}
+
+function hideCityModal() {
+    const modal = document.getElementById("city-modal");
+    if (modal) modal.style.display = "none";
+}
+
+async function searchCityByName(cityName) {
+    try {
+        const url = `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&units=metric&lang=es&appid=${API_KEY}`;
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error("Ciudad no encontrada");
+        }
+
+        const data = await response.json();
+
+        // Guardar coordenadas de la ciudad
+        weatherCoords = {
+            lat: data.coord.lat,
+            lng: data.coord.lon
+        };
+
+        localStorage.setItem("weatherCoords", JSON.stringify(weatherCoords));
+
+        return data;
+    } catch (error) {
+        console.error("Error buscando ciudad:", error);
+        alert("No se encontró la ciudad. Intenta con otra.");
+        return null;
+    }
+}
+
+function setupCityModal() {
+    const saveCityBtn = document.getElementById("save-city-btn");
+    const retryLocationBtn = document.getElementById("retry-location-btn");
+    const cityInput = document.getElementById("city-input");
+
+    saveCityBtn.addEventListener("click", async () => {
+        const cityName = cityInput.value.trim();
+
+        if (!cityName) {
+            alert("Por favor, escribe una ciudad");
+            return;
+        }
+
+        const data = await searchCityByName(cityName);
+
+        if (data) {
+            updateWeatherUI(data);
+            hideCityModal();
+            cityInput.value = "";
+        }
+    });
+
+    retryLocationBtn.addEventListener("click", async () => {
+        try {
+            weatherCoords = await getUserLocation();
+            localStorage.setItem("weatherCoords", JSON.stringify(weatherCoords));
+            hideCityModal();
+            getDataWeather();
+        } catch (error) {
+            alert("No se pudo obtener tu ubicación. Por favor, escribe tu ciudad.");
+        }
+    });
+
+    const changeCityBtn = document.getElementById("change-city-btn");
+
+    changeCityBtn.addEventListener("click", () => {
+        showCityModal();
+    });
+
+    // Permitir Enter en el input
+    cityInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+            saveCityBtn.click();
+        }
+    });
+}
+
+
 
 async function getDataWeather() {
     try {
-        const response = await fetch(apiWeather);
+        // Si no tenemos coordenadas, intentar obtenerlas
+        if (!weatherCoords) {
+            const savedCoords = localStorage.getItem("weatherCoords");
+
+            if (savedCoords) {
+                weatherCoords = JSON.parse(savedCoords);
+            } else {
+                try {
+                    // Intentar obtener ubicación del usuario
+                    weatherCoords = await getUserLocation();
+                    localStorage.setItem("weatherCoords", JSON.stringify(weatherCoords));
+                } catch (error) {
+                    // Si falla la geolocalización, mostrar modal
+                    console.log("Geolocalización rechazada o no disponible");
+                    showCityModal();
+                    return; // Salir de la función
+                }
+            }
+        }
+
+        // Llamar a OpenWeatherMap con las coordenadas
+        const url = `https://api.openweathermap.org/data/2.5/weather?lat=${weatherCoords.lat}&lon=${weatherCoords.lng}&units=metric&lang=es&appid=${API_KEY}`;
+
+        const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
         const data = await response.json();
         updateWeatherUI(data);
     } catch (error) {
         console.error("Error al obtener los datos del clima:", error);
+        showCityModal(); // Mostrar modal también si hay error de API
     }
-}
-
-function updateWeatherUI(data) {
-    if (!data?.temperaturas) return console.error("Datos del clima no disponibles.");
-
-    const weatherDay = document.querySelector(".weather-logo");
-    const temperature = document.querySelector(".temperature");
-    const humidityElem = document.querySelector(".humidity");
-
-    const iconClass = categorizeState(data.stateSky.description);
-
-    if (weatherDay) weatherDay.innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
-    if (temperature) temperature.textContent = `${data.temperaturas.min}°C / ${data.temperaturas.max}°C`;
-    if (humidityElem) humidityElem.innerHTML = `<i class="fa-solid fa-droplet"></i> ${data.humedad}%`;
 }
 
 function categorizeState(state) {
@@ -337,16 +445,40 @@ function categorizeState(state) {
     if (s.includes("lluvia") || s.includes("lluvioso") || s.includes("lluvias")) return "fa-cloud-showers-heavy";
     if (s.includes("niebla") || s.includes("bruma")) return "fa-smog";
 
-    if (s.includes("nuboso") || s.includes("cubierto") || s.includes("nubes")) {
+    if (s.includes("nuboso") || s.includes("cubierto") || s.includes("nubes") || s.includes("nube")) {
         // Si tiene "poco" o "altas" es sol y nubes, si no, nublado total
-        return (s.includes("poco") || s.includes("altas")) ? "fa-cloud-sun" : "fa-cloud";
+        return (s.includes("poco") || s.includes("dispersas") || s.includes("altas")) ? "fa-cloud-sun" : "fa-cloud";
     }
 
-    if (s.includes("despejado") || s.includes("sol")) return "fa-sun";
+    if (s.includes("despejado") || s.includes("sol") || s.includes("claro")) return "fa-sun";
 
     return "fa-cloud"; // Icono por defecto
-
 }
+
+function updateWeatherUI(data) {
+    if (!data || !data.main) return console.error("Datos del clima no disponibles.");
+
+    const weatherDay = document.querySelector(".weather-logo");
+    const temperature = document.querySelector(".temperature");
+    const humidityElem = document.querySelector(".humidity");
+    const windElem = document.querySelector(".wind"); // ← NUEVO
+    const cityName = document.querySelector(".city-name");
+
+    const iconClass = categorizeState(data.weather[0].description);
+
+    if (weatherDay) weatherDay.innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
+    if (temperature) temperature.textContent = `${Math.round(data.main.temp_min)}°C / ${Math.round(data.main.temp_max)}°C`;
+    if (humidityElem) humidityElem.innerHTML = `<i class="fa-solid fa-droplet"></i> ${data.main.humidity}%`;
+
+    // ← NUEVO: Mostrar viento
+    if (windElem && data.wind) {
+        const windSpeed = Math.round(data.wind.speed * 3.6); // Convertir m/s a km/h
+        windElem.innerHTML = `<i class="fa-solid fa-wind"></i> ${windSpeed} km/h`;
+    }
+
+    if (cityName) cityName.textContent = data.name;
+}
+
 
 // ========== POMODORO ==========
 function pomodoroTimer() {
@@ -451,6 +583,7 @@ function pomodoroTimer() {
 
 
 // ========== INICIALIZACIÓN ==========
+setupCityModal();
 getDataWeather();
 setInterval(getDataWeather, 1800000);
 clock();

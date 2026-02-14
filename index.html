@@ -42,15 +42,21 @@
             </div>
 
             <div class="small-card">
-                <div class="city-weather-info ">
-                    <p class="city-name">Málaga</p>
+                <div class="city-weather-info">
+                    <p class="city-name"></p>
+                    <button id="change-city-btn" class="change-city-btn" title="Cambiar ciudad">
+                        <i class="fa-solid fa-location-dot"></i>
+                    </button>
                 </div>
                 <div class="weather-container">
                     <div class="weather-logo">
                     </div>
                     <div class="weather-text">
                         <p class="temperature"></p>
-                        <p class="humidity"></p>
+                        <div class="weather-details">
+                            <p class="humidity"></p>
+                            <p class="wind"></p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -127,6 +133,21 @@
 
         </section>
     </div>
+
+    <!-- Modal para configurar ciudad -->
+    <div id="city-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Configurar ubicación</h3>
+            <p>No pudimos obtener tu ubicación automáticamente.</p>
+            <p>Por favor, escribe tu ciudad:</p>
+            <input type="text" id="city-input" placeholder="Ej: Madrid, Barcelona, París...">
+            <div class="modal-buttons">
+                <button id="save-city-btn">Guardar</button>
+                <button id="retry-location-btn">Reintentar geolocalización</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js">
     </script>
 </body>

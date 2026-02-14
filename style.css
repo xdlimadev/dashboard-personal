@@ -511,6 +511,157 @@ h1 {
     margin: 8px 0;
 }
 
+.weather-details {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+}
+
+.weather-details p {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.city-weather-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Cambiado de center */
+    gap: 15px;
+    padding: 0 10px; /* Añadido padding */
+}
+
+.city-name {
+    flex: 1; /* Para que ocupe el espacio disponible */
+    text-align: center;
+}
+
+.change-city-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(167, 113, 245, 0.3);
+    color: #a771f5;
+    width: 38px;  /* Aumentado */
+    height: 38px; /* Aumentado */
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0; /* Para que no se achique */
+}
+
+.change-city-btn:hover {
+    background: rgba(167, 113, 245, 0.2);
+    border-color: #a771f5;
+    transform: scale(1.1);
+}
+
+.change-city-btn i {
+    font-size: 1.1rem; /* Aumentado */
+}
+
+/* ========== MODAL DE CIUDAD ========== */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background: linear-gradient(135deg, #2a2d4a 0%, #1a1d35 100%);
+    padding: 40px;
+    border-radius: 20px;
+    border: 2px solid rgba(167, 113, 245, 0.3);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+}
+
+.modal-content h3 {
+    color: #a771f5;
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+}
+
+.modal-content p {
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+#city-input {
+    width: 100%;
+    max-width: 400px;
+    height: 50px;
+    padding: 14px 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(167, 113, 245, 0.3);
+    color: white;
+    border-radius: 12px;
+    font-size: 1rem;
+    margin: 20px 0;
+    transition: all 0.3s ease;
+}
+
+#city-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+#city-input:focus {
+    outline: none;
+    border-color: #a771f5;
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 4px rgba(167, 113, 245, 0.15);
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 25px;
+    flex-wrap: wrap;
+}
+
+.modal-buttons button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#save-city-btn {
+    background: linear-gradient(135deg, #a771f5 0%, #8e5de8 100%);
+    color: white;
+}
+
+#save-city-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(167, 113, 245, 0.6);
+}
+
+#retry-location-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+#retry-location-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
 
 /* ========== POMODORO ========== */
 
