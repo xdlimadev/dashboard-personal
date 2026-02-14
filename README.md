@@ -8,14 +8,15 @@
 
 Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador Pomodoro y widget del clima en tiempo real.
 
-
 ## ✨ Características
 
 ### 📋 Sistema de Tareas Kanban
 - **Tres columnas:** Pendientes, En Progreso y Completadas
 - **Drag & Drop nativo:** Arrastra tareas entre columnas o dentro de la misma para reordenar
+- **Reordenamiento con persistencia:** El orden de las tareas se mantiene al recargar la página
+- **Indicadores visuales:** Líneas moradas muestran dónde se insertará la tarea al arrastrar
 - **Navegación con botones:** Mueve tareas con flechas si prefieres
-- **Persistencia:** Todas tus tareas se guardan localmente
+- **Persistencia completa:** Todas tus tareas y su orden se guardan localmente
 
 ### 🍅 Temporizador Pomodoro
 - **Ciclos de trabajo/descanso:** 25 min trabajo, 5 min descanso corto, 15 min descanso largo
@@ -85,6 +86,7 @@ dashboard-personal/
 - **Responsive:** Adaptable a diferentes tamaños de pantalla
 - **Animaciones suaves:** Transiciones y efectos hover
 - **Scrollbar personalizada:** Diseño consistente con el tema
+- **Indicadores visuales:** Feedback en tiempo real durante interacciones
 
 ## 🔄 Funcionalidades Técnicas
 
@@ -92,16 +94,20 @@ dashboard-personal/
 - Las tareas se guardan en `localStorage`
 - Se mantienen al recargar la página
 - Estados sincronizados entre columnas
+- **Orden personalizado persistente:** El orden de las tareas se guarda y restaura
 
-### Drag & Drop
-- Arrastre entre columnas
-- Feedback visual durante el arrastre
-- Actualización automática del estado
+### Drag & Drop Avanzado
+- **Arrastre entre columnas:** Cambia el estado de las tareas
+- **Reordenamiento dentro de columnas:** Prioriza tareas arrastrándolas
+- **Indicadores visuales:** Líneas moradas muestran la posición de inserción
+- **Efectos visuales:** La tarea se reduce ligeramente al arrastrar
+- **Feedback inmediato:** Los cambios se ven en tiempo real
 
-### Gestión de Estados
+### Gestión de Estados y Orden
 - Tareas: `pending`, `progress`, `completed`
+- Cada tarea tiene una propiedad `order` que determina su posición
 - Pomodoro: `trabajo`, `shortBreak`, `longBreak`
-- Sincronización con localStorage
+- Sincronización completa con localStorage
 
 ## 📝 Uso
 
@@ -113,6 +119,11 @@ dashboard-personal/
 ### Mover Tareas
 - **Con botones:** Click en la flecha → para avanzar
 - **Con drag & drop:** Arrastra la tarea a la columna deseada
+
+### Reordenar Tareas
+- **Arrastra tareas arriba/abajo** dentro de la misma columna
+- **Indicadores visuales** muestran dónde se insertará
+- **El orden se guarda automáticamente**
 
 ### Eliminar Tareas
 - Click en el botón ✖ de cualquier tarea
@@ -131,7 +142,6 @@ dashboard-personal/
 
 ## 🚧 Próximas Mejoras
 
-- [ ] Reordenamiento de tareas dentro de la misma columna
 - [ ] Backend con PHP y base de datos
 - [ ] Sistema de login y usuarios
 - [ ] Modo oscuro/claro toggle
@@ -139,6 +149,8 @@ dashboard-personal/
 - [ ] Gráficos de productividad
 - [ ] Exportar/importar tareas
 - [ ] Notificaciones del Pomodoro
+- [ ] Filtros y búsqueda de tareas
+- [ ] Etiquetas y categorías
 
 ## 🤝 Contribuciones
 

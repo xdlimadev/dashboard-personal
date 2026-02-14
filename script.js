@@ -49,14 +49,18 @@ function addTask(taskInput, taskList) {
     const task = {
         id: Date.now(),
         text: taskInput.value,
-        state: "pending"
+        state: "pending",
+        order: 0
     };
 
     tasks.push(task);
-    localStorage.setItem("tasks", JSON.stringify(tasks));
 
-    const li = createTaskElement(taskInput.value, task.id);
+    console.log("Tarea añadida:", task.id, "State: ", task.state);
+    const li = createTaskElement(taskInput.value, task.id, task.state);
     taskList.appendChild(li);
+
+    updateTaskOrder(taskList.id);
+
     taskInput.value = "";
 
 }
@@ -81,9 +85,8 @@ function moveTask(completeBtn, li) {
             if (task.state === "completed") {
                 completeBtn.style.display = "none";
             }
+            updateTaskOrder(destinationList.id);
         }
-
-        localStorage.setItem("tasks", JSON.stringify(tasks));
     });
 }
 
@@ -100,14 +103,12 @@ function deleteTask(deleteBtn, li) {
 function taskManager() {
     const taskList = document.getElementById("pending-list");
     const taskInput = document.getElementById("task-input");
-    const addTaskBtn = document.getElementById("add-task-btn");
 
 
     loadTasks();
     setupDragAndDrop();
     const form = document.querySelector(".col-2 form");
     form.addEventListener("submit", (e) => { e.preventDefault(); addTask(taskInput, taskList); });
-    // addTaskBtn.addEventListener("click", () => addTask(taskInput, taskList));
 }
 
 function loadTasks() {
@@ -120,8 +121,11 @@ function loadTasks() {
         "completed": document.getElementById("completed-list")
     };
 
+    tasks.sort((a, b) => (a.order || 0 ) - (b.order || 0));
+
     // Si hay tareas guardadas, las cargamos en el array
     for (const task of tasks) {
+        console.log("Cargando tarea:", task.id, "State: ", task.state);
         const li = createTaskElement(task.text, task.id, task.state);
         const targetList = lists[task.state];
         if (targetList) targetList.appendChild(li);
@@ -134,12 +138,17 @@ function createTaskElement(taskText, taskId, taskState) {
     li.className = "task-item";
     li.dataset.id = taskId;
 
-    li.addEventListener("dragstart", (e) => {
-        e.dataTransfer.setData("taskId", taskId);
-        li.classList.add("dragging");
+    li.addEventListener("dragover", (e) => {
+        e.preventDefault();
     });
 
-    // Y AÑADE el evento dragend (nuevo):
+    li.addEventListener("dragstart", (e) => {
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain" , taskId.toString());
+        li.classList.add("dragging");
+        console.log("Drag started for task ID:", taskId);
+    });
+
     li.addEventListener("dragend", (e) => {
         li.classList.remove("dragging"); // ← AÑADIR este evento completo
     });
@@ -176,27 +185,67 @@ function createTaskElement(taskText, taskId, taskState) {
 }
 
 function setupDragAndDrop() {
-    // Seleccionamos todas las listas que pueden recibir tareas
     const lists = document.querySelectorAll("ul[data-state]");
 
-    //  Agregamos eventos de dragover y drop a cada lista
     lists.forEach(list => {
-
-        // Permitir que el elemento se pueda soltar en esta lista
         list.addEventListener("dragover", (e) => {
             e.preventDefault();
+
+            document.querySelectorAll('.drag-over-top, .drag-over-bottom').forEach(el => {
+                el.classList.remove('drag-over-top', 'drag-over-bottom');
+
+            });
+
+            const afterElement = getDragAfterElement(list, e.clientY);
+
+            if (afterElement) {
+                afterElement.classList.add("drag-over-top");
+            } else if (list.children.length > 0) {
+                const lastChild = [...list.children].filter(child => !child.classList.contains("dragging")).pop();
+                if (lastChild) lastChild.classList.add("drag-over-bottom");
+            }
+
         });
 
         // Manejar el evento de soltar una tarea en esta lista
         list.addEventListener("drop", (e) => {
+            console.log("Drop event detected on list:", list.id);
             e.preventDefault();
-            const taskId = e.dataTransfer.getData("taskId");
-            const taskElement = document.querySelector(`li[data-id="${taskId}"]`);
-            // Si encontramos el elemento de la tarea, lo movemos a la nueva lista y actualizamos su estado
-            if (taskElement) {
-                list.appendChild(taskElement);
-                updateTaskState(taskId, list.dataset.state);
+
+            document.querySelectorAll('.drag-over-top, .drag-over-bottom').forEach(el => {
+                el.classList.remove('drag-over-top', 'drag-over-bottom');
+            });
+
+            const taskId = e.dataTransfer.getData("text/plain");
+            console.log("Task ID from drag data:", taskId);
+
+            const draggable = document.querySelector(`li[data-id="${taskId}"]`);
+            console.log("Draggable element found:", draggable);
+
+            if (!draggable) {
+                console.log("No draggable element found for task ID:", taskId);
+                return;
             }
+
+            const afterElement = getDragAfterElement(list, e.clientY);
+            console.log("After element:", afterElement);
+
+            if (afterElement == null) {
+                list.appendChild(draggable);
+                console.log("añadido al final");
+            } else {
+                list.insertBefore(draggable, afterElement);
+                console.log("insertado antes de afterElement: ", afterElement);
+            }
+            updateTaskState(taskId, list.dataset.state);
+            updateTaskOrder(list.id);
+
+        });
+
+        list.addEventListener("dragleave", () => {
+            document.querySelectorAll('.drag-over-top, .drag-over-bottom').forEach(el => {
+                el.classList.remove('drag-over-top', 'drag-over-bottom');
+            });
         });
     });
 }
@@ -216,7 +265,37 @@ function updateTaskState(taskId, newState) {
     } else {
         completeBtn.style.display = "block";
     }
+}
 
+function getDragAfterElement(container, y) {
+    const draggableElements = [...container.querySelectorAll(".task-item:not(.dragging)")];
+
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child }
+        } else {
+            return closest;
+        }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+function updateTaskOrder(listId) {
+    const list = document.getElementById(listId);
+    const taskElements = [...list.querySelectorAll(".task-item")];
+
+    taskElements.forEach((taskEl, index) => {
+        const taskId = Number(taskEl.dataset.id);
+        const task = tasks.find(t => t.id === taskId);
+
+        if (task) {
+            task.order = index;
+        }
+    });
+
+    localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
 
