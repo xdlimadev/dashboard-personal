@@ -15,5 +15,5 @@ node_modules/
 config.php
 .env
 
-# Archivos de backup
-backup/
+#archivos de testing
+api/test_connection.php

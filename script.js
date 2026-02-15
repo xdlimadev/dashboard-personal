@@ -415,7 +415,7 @@ async function getDataWeather() {
                     localStorage.setItem("weatherCoords", JSON.stringify(weatherCoords));
                 } catch (error) {
                     // Si falla la geolocalización, mostrar modal
-                    console.log("Geolocalización rechazada o no disponible");
+                    console.error("Geolocalización rechazada o no disponible:", error);
                     showCityModal();
                     return; // Salir de la función
                 }

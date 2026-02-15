@@ -1,0 +1,26 @@
+<?php
+
+class Database {
+    private $host = "localhost";
+    private $dbName = "dashboard_db";
+    private $username = "root";
+    private $password = "";
+    public $conn;
+
+    public function getConnection(){
+        $this->conn = null;
+
+        try {
+            $this->conn = new PDO(
+                "mysql:host=" . $this->host . ";dbname=" . $this->dbName,
+                $this->username,
+                $this->password
+            );
+            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $this->conn->exec("set names utf8mb4");
+        } catch (\Throwable $th) {
+            echo "Connection error: " . $th->getMessage();
+        }
+        return $this->conn;
+    }
+}
