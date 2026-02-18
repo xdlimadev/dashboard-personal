@@ -5,10 +5,10 @@
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 ![PHP](https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
-![Version](https://img.shields.io/badge/version-2.0-blue?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-2.5-blue?style=for-the-badge)
 ![Status](https://img.shields.io/badge/status-active-success?style=for-the-badge)
 
-Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador Pomodoro, widget del clima en tiempo real y backend con PHP y MySQL.
+Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador Pomodoro, widget del clima en tiempo real y **API REST completa** con PHP y MySQL.
 
 ---
 
@@ -20,7 +20,8 @@ Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador 
 - **Reordenamiento con persistencia:** El orden de las tareas se mantiene
 - **Indicadores visuales:** Líneas moradas muestran dónde se insertará la tarea al arrastrar
 - **Navegación con botones:** Mueve tareas con flechas
-- **Backend integrado:** Sistema multiusuario con base de datos MySQL
+- **Backend completo:** API REST con CRUD completo de tareas
+- **Sistema multiusuario:** Cada usuario tiene sus propias tareas
 
 ### 🍅 Temporizador Pomodoro
 - **Ciclos de trabajo/descanso:** 25 min trabajo, 5 min descanso corto, 15 min descanso largo
@@ -39,11 +40,12 @@ Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador 
 
 ### 👤 Sistema de Usuarios (Backend)
 - **Registro de usuarios:** Creación de cuentas con validación
-- **Login/Logout:** Autenticación con sesiones PHP
-- **Encriptación de contraseñas:** Bcrypt para seguridad
-- **Protección contra SQL injection:** Prepared statements
-- **API REST:** Endpoints JSON para comunicación frontend-backend
-- **Base de datos relacional:** MySQL con tablas relacionadas
+- **Login/Logout:** Autenticación completa con sesiones PHP
+- **Encriptación de contraseñas:** Bcrypt para máxima seguridad
+- **Protección contra SQL injection:** Prepared statements en todas las queries
+- **API REST completa:** 7 endpoints JSON funcionales
+- **Base de datos relacional:** MySQL con tablas relacionadas por FOREIGN KEY
+- **Seguridad por usuario:** Cada usuario solo puede ver/modificar sus propias tareas
 
 ### ⏰ Reloj y Fecha
 - **Hora en tiempo real:** Actualización cada segundo
@@ -96,10 +98,10 @@ cd dashboard-personal
 
 ### Paso 3: Configurar la base de datos
 
-#### Opción A: Usando phpMyAdmin
+#### Crear base de datos y tablas
 1. Abre `http://localhost/phpmyadmin`
 2. Crea una nueva base de datos llamada `dashboard_db`
-3. Importa el archivo SQL o ejecuta estos comandos:
+3. Ejecuta estos comandos SQL:
 
 ```sql
 -- Crear base de datos
@@ -168,10 +170,14 @@ dashboard-personal/
 │   ├── config/
 │   │   └── database.php    # Configuración de la BD
 │   ├── auth/
-│   │   ├── register.php    # Endpoint de registro
-│   │   └── login.php       # Endpoint de login
+│   │   ├── register.php    # Registro de usuarios
+│   │   ├── login.php       # Inicio de sesión
+│   │   └── logout.php      # Cierre de sesión
 │   └── tasks/
-│       └── (próximamente)  # Endpoints CRUD de tareas
+│       ├── create.php      # Crear tarea
+│       ├── read.php        # Leer tareas
+│       ├── update.php      # Actualizar tarea
+│       └── delete.php      # Eliminar tarea
 ├── .gitignore              # Archivos ignorados por Git
 └── README.md               # Este archivo
 ```
@@ -182,10 +188,12 @@ dashboard-personal/
 
 ### Backend
 - ✅ **Encriptación de contraseñas:** `password_hash()` con BCRYPT
-- ✅ **Prepared Statements:** Prevención de SQL injection
-- ✅ **Validación de datos:** Verificación de inputs
+- ✅ **Prepared Statements:** Prevención de SQL injection en todas las queries
+- ✅ **Validación de datos:** Verificación de inputs en todos los endpoints
 - ✅ **Sessions PHP:** Gestión segura de autenticación
+- ✅ **Protección por usuario:** Verificación de `user_id` en WHERE clauses
 - ✅ **HTTP Status Codes:** Respuestas apropiadas (200, 201, 400, 401, 404, 500)
+- ✅ **Exit después de errores:** Prevención de ejecución de código adicional
 
 ### Frontend
 - ✅ **Validación de formularios:** Prevención de datos vacíos
@@ -194,13 +202,22 @@ dashboard-personal/
 
 ---
 
-## 📡 Endpoints de la API
+## 📡 Documentación de la API
 
-### Autenticación
-
-#### Registro de usuario
+### Base URL
 ```
-POST /api/auth/register.php
+http://dashboard.local/api
+```
+
+---
+
+### 🔐 Autenticación
+
+#### 1. Registro de usuario
+Crea una nueva cuenta de usuario.
+
+```http
+POST /auth/register.php
 Content-Type: application/json
 
 {
@@ -211,12 +228,26 @@ Content-Type: application/json
 ```
 
 **Respuestas:**
-- `201` - Usuario creado correctamente
-- `400` - Usuario o email ya existe / Datos incompletos
-
-#### Login
+- `201 Created` - Usuario creado correctamente
+```json
+{
+    "message": "User registered successfully"
+}
 ```
-POST /api/auth/login.php
+- `400 Bad Request` - Usuario o email ya existe / Datos incompletos
+```json
+{
+    "message": "User or email already exists"
+}
+```
+
+---
+
+#### 2. Inicio de sesión
+Autentica un usuario y crea una sesión.
+
+```http
+POST /auth/login.php
 Content-Type: application/json
 
 {
@@ -226,10 +257,197 @@ Content-Type: application/json
 ```
 
 **Respuestas:**
-- `200` - Login exitoso (incluye datos del usuario)
-- `401` - Contraseña incorrecta
-- `404` - Usuario no encontrado
-- `400` - Datos incompletos
+- `200 OK` - Login exitoso
+```json
+{
+    "message": "Login successful",
+    "user": {
+        "id": 1,
+        "username": "usuario",
+        "email": "email@ejemplo.com"
+    }
+}
+```
+- `401 Unauthorized` - Contraseña incorrecta
+- `404 Not Found` - Usuario no encontrado
+- `400 Bad Request` - Datos incompletos
+
+---
+
+#### 3. Cerrar sesión
+Destruye la sesión del usuario.
+
+```http
+POST /auth/logout.php
+```
+
+**Respuestas:**
+- `200 OK` - Sesión cerrada
+```json
+{
+    "message": "Logged out successfully"
+}
+```
+
+---
+
+### 📋 Gestión de Tareas (CRUD)
+
+> **Nota:** Todos estos endpoints requieren que el usuario esté autenticado (sesión activa).
+
+---
+
+#### 4. Crear tarea
+Crea una nueva tarea para el usuario autenticado.
+
+```http
+POST /tasks/create.php
+Content-Type: application/json
+
+{
+    "text": "Nombre de la tarea",
+    "state": "pending",          // Opcional: pending, progress, completed
+    "task_order": 0              // Opcional: número de orden
+}
+```
+
+**Respuestas:**
+- `201 Created` - Tarea creada
+```json
+{
+    "message": "Task created successfully",
+    "task": {
+        "id": 1,
+        "text": "Nombre de la tarea",
+        "state": "pending",
+        "task_order": 0
+    }
+}
+```
+- `401 Unauthorized` - Usuario no autenticado
+- `400 Bad Request` - Datos incompletos
+- `500 Internal Server Error` - Error al crear
+
+---
+
+#### 5. Leer tareas
+Obtiene todas las tareas del usuario autenticado, ordenadas por `task_order`.
+
+```http
+GET /tasks/read.php
+```
+
+**Respuestas:**
+- `200 OK` - Tareas obtenidas
+```json
+{
+    "tasks": [
+        {
+            "id": 1,
+            "text": "Tarea 1",
+            "state": "pending",
+            "task_order": 0
+        },
+        {
+            "id": 2,
+            "text": "Tarea 2",
+            "state": "progress",
+            "task_order": 1
+        }
+    ]
+}
+```
+- `401 Unauthorized` - Usuario no autenticado
+
+---
+
+#### 6. Actualizar tarea
+Actualiza una tarea existente del usuario autenticado.
+
+```http
+PUT /tasks/update.php
+Content-Type: application/json
+
+{
+    "id": 1,
+    "text": "Tarea actualizada",
+    "state": "progress",
+    "task_order": 0
+}
+```
+
+**Respuestas:**
+- `200 OK` - Tarea actualizada
+```json
+{
+    "message": "Task updated successfully"
+}
+```
+- `401 Unauthorized` - Usuario no autenticado
+- `400 Bad Request` - ID de tarea no proporcionado
+- `500 Internal Server Error` - Error al actualizar
+
+> **Nota de seguridad:** Solo se actualizan tareas que pertenecen al usuario autenticado (verificado con `user_id` en WHERE).
+
+---
+
+#### 7. Eliminar tarea
+Elimina una tarea del usuario autenticado.
+
+```http
+DELETE /tasks/delete.php
+Content-Type: application/json
+
+{
+    "id": 1
+}
+```
+
+**Respuestas:**
+- `200 OK` - Tarea eliminada
+```json
+{
+    "message": "Task deleted successfully"
+}
+```
+- `401 Unauthorized` - Usuario no autenticado
+- `400 Bad Request` - ID de tarea no proporcionado
+- `500 Internal Server Error` - Error al eliminar
+
+> **Nota de seguridad:** Solo se eliminan tareas que pertenecen al usuario autenticado (verificado con `user_id` en WHERE).
+
+---
+
+## 🧪 Pruebas de la API
+
+### Con Thunder Client (VS Code)
+1. Instala la extensión "Thunder Client"
+2. Crea requests según la documentación anterior
+3. Usa las sesiones para mantener la autenticación
+
+### Con cURL (Terminal)
+```bash
+# Registro
+curl -X POST http://dashboard.local/api/auth/register.php \
+  -H "Content-Type: application/json" \
+  -d '{"username":"test","email":"test@test.com","password":"12345"}'
+
+# Login
+curl -X POST http://dashboard.local/api/auth/login.php \
+  -H "Content-Type: application/json" \
+  -d '{"username":"test","password":"12345"}' \
+  -c cookies.txt
+
+# Crear tarea (usando cookies de login)
+curl -X POST http://dashboard.local/api/tasks/create.php \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{"text":"Mi tarea"}'
+
+# Leer tareas
+curl -X GET http://dashboard.local/api/tasks/read.php \
+  -b cookies.txt
+```
 
 ---
 
@@ -247,10 +465,10 @@ Content-Type: application/json
 
 ## 📝 Uso
 
-### Registro e Inicio de Sesión
-1. **Primera vez:** Regístrate creando una cuenta
+### Primera vez
+1. **Regístrate** creando una cuenta nueva
 2. **Inicia sesión** con tus credenciales
-3. Tus tareas se guardarán en la base de datos
+3. **Empieza a usar** el dashboard
 
 ### Gestión de Tareas
 - **Añadir:** Escribe y presiona Enter o click en "+"
@@ -277,8 +495,16 @@ Content-Type: application/json
 - Asegúrate de haber creado la base de datos `dashboard_db`
 
 ### Error "Headers already sent"
-- Verifica que no haya espacios antes de `<?php` o después de `?>`
-- Elimina `?>` al final de los archivos PHP puros
+- Verifica que no haya espacios antes de `<?php`
+- NO uses `?>` al final de archivos PHP puros
+- Asegúrate de que los archivos estén en UTF-8 sin BOM
+
+### Error "Column not found: task_order"
+- Ejecuta: `ALTER TABLE tasks ADD COLUMN task_order INT DEFAULT 0 AFTER state;`
+
+### Sesiones no persisten en Thunder Client
+- Es normal, Thunder Client no mantiene cookies entre requests
+- Las sesiones funcionarán correctamente cuando conectes el frontend
 
 ### No aparece el clima
 - Verifica tu API Key de OpenWeatherMap
@@ -293,17 +519,19 @@ Content-Type: application/json
 
 ## 🚧 Próximas Mejoras
 
-- [ ] CRUD completo de tareas con backend
-- [ ] Endpoint de logout
-- [ ] Protección de rutas (verificación de sesión)
+- [ ] Conectar frontend con backend (reemplazar localStorage)
+- [ ] Formularios de login/registro en la interfaz
+- [ ] Botón de logout visible
 - [ ] Sincronización automática de tareas
-- [ ] Panel de administración de usuarios
 - [ ] Recuperación de contraseña
+- [ ] Validación de email con código
+- [ ] Panel de administración de usuarios
 - [ ] Modo oscuro/claro toggle
 - [ ] Exportar/importar tareas
 - [ ] Notificaciones del Pomodoro
 - [ ] Gráficos de productividad
 - [ ] Aplicación móvil (PWA)
+- [ ] Deploy en producción con HTTPS
 
 ---
 
@@ -338,19 +566,21 @@ Este proyecto es de código abierto y está disponible para uso personal y educa
 
 ### Backend
 - PHP OOP (Clases, Métodos)
-- MySQL (DDL, DML, Relaciones)
+- MySQL (DDL, DML, Relaciones, FOREIGN KEY)
 - PDO (Prepared Statements)
-- Sessions
-- Password Hashing
-- REST API design
-- JSON manipulation
+- Sessions (Autenticación)
+- Password Hashing (BCRYPT)
+- REST API Design (CRUD completo)
+- JSON Manipulation
 - HTTP Status Codes
+- Security Best Practices
 
 ### DevOps
 - Git & GitHub
-- XAMPP configuration
+- XAMPP Configuration
 - Virtual Hosts
 - phpMyAdmin
+- API Testing (Thunder Client)
 
 ---
 
