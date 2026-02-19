@@ -290,7 +290,7 @@ function updateTaskOrder(listId) {
 
 
 // ========== CLIMA ==========
-let API_KEY = "e921e75da4f3ceb1bd2690027a03c9c4";
+let API_KEY = ""; <--- API KEY https://openweathermap.org/api
 let weatherCoords = null;
 
 function getUserLocation() {
