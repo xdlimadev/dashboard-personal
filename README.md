@@ -5,7 +5,7 @@
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 ![PHP](https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
-![Version](https://img.shields.io/badge/version-2.5-blue?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-3.0-blue?style=for-the-badge)
 ![Status](https://img.shields.io/badge/status-active-success?style=for-the-badge)
 
 Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador Pomodoro, widget del clima en tiempo real y **API REST completa** con PHP y MySQL.
@@ -41,9 +41,12 @@ Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador 
 ### 👤 Sistema de Usuarios (Backend)
 - **Registro de usuarios:** Creación de cuentas con validación
 - **Login/Logout:** Autenticación completa con sesiones PHP
+- **Pantalla de autenticación:** Formularios de login y registro integrados en el frontend
+- **Botón de logout:** Visible y funcional en el dashboard
+- **Verificación de sesión:** Comprobación automática al cargar la página
 - **Encriptación de contraseñas:** Bcrypt para máxima seguridad
 - **Protección contra SQL injection:** Prepared statements en todas las queries
-- **API REST completa:** 7 endpoints JSON funcionales
+- **API REST completa:** 9 endpoints JSON funcionales
 - **Base de datos relacional:** MySQL con tablas relacionadas por FOREIGN KEY
 - **Seguridad por usuario:** Cada usuario solo puede ver/modificar sus propias tareas
 
@@ -163,20 +166,22 @@ http://dashboard.local
 
 ```
 dashboard-personal/
-├── index.html              # Página principal
+├── index.html              # Página principal (incluye UI de login/registro)
 ├── style.css               # Estilos y diseño
 ├── script.js               # Lógica del frontend
 ├── api/                    # Backend PHP
 │   ├── config/
 │   │   └── database.php    # Configuración de la BD
 │   ├── auth/
-│   │   ├── register.php    # Registro de usuarios
-│   │   ├── login.php       # Inicio de sesión
-│   │   └── logout.php      # Cierre de sesión
+│   │   ├── register.php        # Registro de usuarios
+│   │   ├── login.php           # Inicio de sesión
+│   │   ├── logout.php          # Cierre de sesión
+│   │   └── check_session.php   # Verificación de sesión activa
 │   └── tasks/
 │       ├── create.php      # Crear tarea
 │       ├── read.php        # Leer tareas
-│       ├── update.php      # Actualizar tarea
+│       ├── update.php      # Actualizar tarea (texto, estado)
+│       ├── update_order.php# Actualizar orden de tareas (batch)
 │       └── delete.php      # Eliminar tarea
 ├── .gitignore              # Archivos ignorados por Git
 └── README.md               # Este archivo
@@ -291,13 +296,40 @@ POST /auth/logout.php
 
 ---
 
+#### 4. Verificar sesión
+Comprueba si hay una sesión activa. Usado al cargar la página para decidir si mostrar el dashboard o la pantalla de login.
+
+```http
+GET /auth/check_session.php
+```
+
+**Respuestas:**
+- `200 OK` - Sesión activa
+```json
+{
+    "authenticated": true,
+    "user": {
+        "id": 1,
+        "username": "usuario"
+    }
+}
+```
+- `401 Unauthorized` - Sin sesión activa
+```json
+{
+    "authenticated": false
+}
+```
+
+---
+
 ### 📋 Gestión de Tareas (CRUD)
 
 > **Nota:** Todos estos endpoints requieren que el usuario esté autenticado (sesión activa).
 
 ---
 
-#### 4. Crear tarea
+#### 5. Crear tarea
 Crea una nueva tarea para el usuario autenticado.
 
 ```http
@@ -330,7 +362,7 @@ Content-Type: application/json
 
 ---
 
-#### 5. Leer tareas
+#### 6. Leer tareas
 Obtiene todas las tareas del usuario autenticado, ordenadas por `task_order`.
 
 ```http
@@ -361,7 +393,7 @@ GET /tasks/read.php
 
 ---
 
-#### 6. Actualizar tarea
+#### 7. Actualizar tarea
 Actualiza una tarea existente del usuario autenticado.
 
 ```http
@@ -391,7 +423,38 @@ Content-Type: application/json
 
 ---
 
-#### 7. Eliminar tarea
+#### 8. Actualizar orden de tareas (batch)
+Actualiza el `task_order` de múltiples tareas en una sola petición. Se usa al reordenar con drag & drop.
+
+```http
+POST /tasks/update_order.php
+Content-Type: application/json
+
+{
+    "tasks": [
+        { "id": 1, "task_order": 0 },
+        { "id": 2, "task_order": 1 },
+        { "id": 3, "task_order": 2 }
+    ]
+}
+```
+
+**Respuestas:**
+- `200 OK` - Orden actualizado
+```json
+{
+    "message": "Tasks order updated successfully"
+}
+```
+- `401 Unauthorized` - Usuario no autenticado
+- `400 Bad Request` - Datos inválidos o array vacío
+- `500 Internal Server Error` - Error al actualizar
+
+> **Nota de seguridad:** Solo se actualizan tareas que pertenecen al usuario autenticado (verificado con `user_id` en WHERE).
+
+---
+
+#### 9. Eliminar tarea
 Elimina una tarea del usuario autenticado.
 
 ```http
@@ -519,10 +582,16 @@ curl -X GET http://dashboard.local/api/tasks/read.php \
 
 ## 🚧 Próximas Mejoras
 
-- [ ] Conectar frontend con backend (reemplazar localStorage)
-- [ ] Formularios de login/registro en la interfaz
-- [ ] Botón de logout visible
-- [ ] Sincronización automática de tareas
+### Completado recientemente ✅
+- [x] Conectar frontend con backend (reemplazar localStorage)
+- [x] Formularios de login/registro en la interfaz
+- [x] Botón de logout visible y funcional
+- [x] Sincronización automática de tareas con la API
+- [x] Verificación de sesión al cargar la página
+- [x] Reordenamiento por drag & drop con persistencia en BD
+
+### Pendiente
+- [ ] Notas Rápidas guardadas en backend (actualmente en localStorage)
 - [ ] Recuperación de contraseña
 - [ ] Validación de email con código
 - [ ] Panel de administración de usuarios

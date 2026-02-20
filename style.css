@@ -526,13 +526,16 @@ h1 {
 .city-weather-info {
     display: flex;
     align-items: center;
-    justify-content: space-between; /* Cambiado de center */
+    justify-content: space-between;
+    /* Cambiado de center */
     gap: 15px;
-    padding: 0 10px; /* Añadido padding */
+    padding: 0 10px;
+    /* Añadido padding */
 }
 
 .city-name {
-    flex: 1; /* Para que ocupe el espacio disponible */
+    flex: 1;
+    /* Para que ocupe el espacio disponible */
     text-align: center;
 }
 
@@ -540,15 +543,18 @@ h1 {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(167, 113, 245, 0.3);
     color: #a771f5;
-    width: 38px;  /* Aumentado */
-    height: 38px; /* Aumentado */
+    width: 38px;
+    /* Aumentado */
+    height: 38px;
+    /* Aumentado */
     border-radius: 50%;
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0; /* Para que no se achique */
+    flex-shrink: 0;
+    /* Para que no se achique */
 }
 
 .change-city-btn:hover {
@@ -558,7 +564,8 @@ h1 {
 }
 
 .change-city-btn i {
-    font-size: 1.1rem; /* Aumentado */
+    font-size: 1.1rem;
+    /* Aumentado */
 }
 
 /* ========== MODAL DE CIUDAD ========== */
@@ -760,5 +767,239 @@ h1 {
 
     .weather-logo {
         font-size: 4rem;
+    }
+}
+
+/* ========== AUTHENTICATION SCREEN ========== */
+.auth-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: linear-gradient(135deg, #1a1d35 0%, #0f1117 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.auth-container {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 50px;
+    max-width: 450px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.auth-container h1 {
+    color: #a771f5;
+    font-size: 2rem;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.auth-form {
+    display: none;
+}
+
+.auth-form.active {
+    display: block;
+}
+
+.auth-form h2 {
+    color: white;
+    font-size: 1.5rem;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.auth-form form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.auth-form input {
+    width: 100%;
+    height: 50px;
+    padding: 14px 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(167, 113, 245, 0.3);
+    color: white;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.auth-form input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.auth-form input:focus {
+    outline: none;
+    border-color: #a771f5;
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 4px rgba(167, 113, 245, 0.15);
+}
+
+.auth-form button {
+    width: 100%;
+    height: 50px;
+    background: linear-gradient(135deg, #a771f5 0%, #8e5de8 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+.auth-form button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(167, 113, 245, 0.6);
+}
+
+.auth-form p {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 20px;
+    font-size: 0.95rem;
+}
+
+.auth-form a {
+    color: #a771f5;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.auth-form a:hover {
+    color: #b885ff;
+    text-decoration: underline;
+}
+
+/* Ocultar dashboard cuando no está autenticado */
+body.not-authenticated .container,
+body.not-authenticated section {
+    display: none;
+}
+
+body.authenticated .auth-screen {
+    display: none;
+}
+
+/* Botón de Logout */
+.logout-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.logout-btn:hover {
+    background: rgba(255, 69, 69, 0.2);
+    border-color: rgba(255, 69, 69, 0.5);
+    transform: translateY(-2px);
+}
+
+.logout-btn i {
+    margin-right: 5px;
+}
+
+/* Ocultar logout cuando no está autenticado */
+body.not-authenticated .logout-btn {
+    display: none;
+}
+
+body:not(.authenticated):not(.not-authenticated) .auth-screen,
+body:not(.authenticated):not(.not-authenticated) .container,
+body:not(.authenticated):not(.not-authenticated) section {
+    display: none;
+}
+
+/* ========== TOAST NOTIFICATIONS ========== */
+.toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10001;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 16px 20px;
+    min-width: 300px;
+    color: white;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.toast.success {
+    border-left: 4px solid #66BB6A;
+}
+
+.toast.error {
+    border-left: 4px solid #EF5350;
+}
+
+.toast.info {
+    border-left: 4px solid #42A5F5;
+}
+
+.toast i {
+    font-size: 1.2rem;
+}
+
+.toast.success i {
+    color: #66BB6A;
+}
+
+.toast.error i {
+    color: #EF5350;
+}
+
+.toast.info i {
+    color: #42A5F5;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        transform: translateX(400px);
     }
 }

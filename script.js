@@ -43,59 +43,116 @@ function dateInfo() {
 // ========== TAREAS ==========
 let tasks = [];
 
-function addTask(taskInput, taskList) {
+async function addTask(taskInput, taskList) {
     if (taskInput.value.trim() === "") return;
 
     const task = {
-        id: Date.now(),
         text: taskInput.value,
         state: "pending",
-        order: 0
+        task_order: tasks.filter(t => t.state === "pending").length
     };
 
-    tasks.push(task);
+    const apiCreate = `${API_URL}/tasks/create.php`;
 
-    const li = createTaskElement(taskInput.value, task.id, task.state);
-    taskList.appendChild(li);
+    const response = await fetch(apiCreate, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(task)
+    });
 
-    updateTaskOrder(taskList.id);
+    if (response.ok) {
+        const data = await response.json();
+        const taskId = Number(data.task.id);
 
-    taskInput.value = "";
 
+        const li = createTaskElement(taskInput.value, taskId, task.state);
+        taskList.appendChild(li);
+
+        task.id = taskId;
+
+
+        tasks.push(task);
+
+        taskInput.value = "";
+
+        showToast('Tarea creada', 'success');
+
+    } else {
+        showToast('Error al crear tarea', 'error')
+    }
 }
 
-function moveTask(completeBtn, li) {
-    completeBtn.addEventListener("click", () => {
-
+async function moveTask(completeBtn, li) {
+    completeBtn.addEventListener("click", async () => {
+        const apiUpdate = `${API_URL}/tasks/update.php`;
         const taskId = Number(li.dataset.id);
         const task = tasks.find(t => t.id === taskId);
 
-        if (task) {
-            if (task.state === "pending") {
-                task.state = "progress";
-            } else if (task.state === "progress") {
-                task.state = "completed";
-            }
+        const oldState = task.state;
+
+        let newState = task.state;
+        if (task.state === "pending") {
+            newState = "progress";
+        } else if (task.state === "progress") {
+            newState = "completed";
         }
 
+        task.state = newState;
         const destinationList = document.getElementById(`${task.state}-list`);
-        if (destinationList) {
-            destinationList.appendChild(li);
-            if (task.state === "completed") {
-                completeBtn.style.display = "none";
-            }
-            updateTaskOrder(destinationList.id);
+        destinationList.appendChild(li);
+
+        if (task.state === "completed") {
+            completeBtn.style.display = "none";
+        }
+
+        const response = await fetch(apiUpdate, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                id: taskId,
+                text: task.text,
+                state: newState,
+                task_order: task.task_order
+            })
+        });
+
+        if (response.ok) {
+            updateTaskOrder(`${oldState}-list`);
+            updateTaskOrder(`${newState}-list`);
+        } else {
+            await loadTasksFromAPI();
+            showToast('Error al actualizar tarea', 'error');
         }
     });
 }
 
-function deleteTask(deleteBtn, li) {
-    deleteBtn.addEventListener("click", () => {
+async function deleteTask(deleteBtn, li) {
+    const apiDelete = `${API_URL}/tasks/delete.php`;
+    const taskId = Number(li.dataset.id);
 
-        const taskId = Number(li.dataset.id);
+    deleteBtn.addEventListener("click", async () => {
         tasks = tasks.filter(t => t.id !== taskId);
-        localStorage.setItem("tasks", JSON.stringify(tasks));
         li.remove();
+
+        const response = await fetch(apiDelete, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({ id: taskId })
+        });
+
+        if (!response.ok) {
+            await loadTasksFromAPI();
+            showToast('No se ha podido eliminar la tarea.', 'error');
+        }
     });
 }
 
@@ -240,12 +297,13 @@ function setupDragAndDrop() {
     });
 }
 
-function updateTaskState(taskId, newState) {
+// DRAG AND DROP
+async function updateTaskState(taskId, newState) {
+    const apiUpdateState = `${API_URL}/tasks/update.php`;
     const task = tasks.find(t => t.id === Number(taskId));
-    if (task) {
-        task.state = newState;
-    }
-    localStorage.setItem("tasks", JSON.stringify(tasks));
+
+    const oldState = task.state;
+    task.state = newState;
 
     const taskElement = document.querySelector(`li[data-id="${taskId}"]`);
     const completeBtn = taskElement.querySelector(".completed-btn");
@@ -254,6 +312,28 @@ function updateTaskState(taskId, newState) {
         completeBtn.style.display = "none";
     } else {
         completeBtn.style.display = "block";
+    }
+
+    const response = await fetch(apiUpdateState, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+            id: taskId,
+            text: task.text,
+            state: newState,
+            task_order: task.task_order
+        })
+    });
+
+    if (response.ok) {
+        updateTaskOrder(`${oldState}-list`);
+        updateTaskOrder(`${newState}-list`);
+    } else {
+        await loadTasksFromAPI();
+        showToast('Error al mover tarea.', 'error');
     }
 }
 
@@ -272,20 +352,46 @@ function getDragAfterElement(container, y) {
     }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
 
-function updateTaskOrder(listId) {
+async function updateTaskOrder(listId) {
+
+    const apiUpdateOrder = `${API_URL}/tasks/update_order.php`;
+
     const list = document.getElementById(listId);
     const taskElements = [...list.querySelectorAll(".task-item")];
 
-    taskElements.forEach((taskEl, index) => {
+    const tasksToUpdate = [];
+    for (let index = 0; index < taskElements.length; index++) {
+        const taskEl = taskElements[index];
         const taskId = Number(taskEl.dataset.id);
         const task = tasks.find(t => t.id === taskId);
 
+
         if (task) {
-            task.order = index;
+            task.task_order = index;
+            tasksToUpdate.push({ id: taskId, task_order: index });
+
         }
+    }
+
+
+
+    if (tasksToUpdate.length === 0) return;
+
+    const response = await fetch(apiUpdateOrder, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+            tasks: tasksToUpdate
+        })
     });
 
-    localStorage.setItem("tasks", JSON.stringify(tasks));
+    if (!response.ok) {
+        await loadTasksFromAPI();
+        showToast('Error al actualizar orden', 'error');
+    }
 }
 
 
@@ -346,7 +452,7 @@ async function searchCityByName(cityName) {
         return data;
     } catch (error) {
         console.error("Error buscando ciudad:", error);
-        alert("No se encontró la ciudad. Intenta con otra.");
+        showToast("Ciudad no encontrada. Intenta con otra.", "error");
         return null;
     }
 }
@@ -360,7 +466,7 @@ function setupCityModal() {
         const cityName = cityInput.value.trim();
 
         if (!cityName) {
-            alert("Por favor, escribe una ciudad");
+            showToast("Por favor, escribe una ciudad", "error");
             return;
         }
 
@@ -380,7 +486,8 @@ function setupCityModal() {
             hideCityModal();
             getDataWeather();
         } catch (error) {
-            alert("No se pudo obtener tu ubicación. Por favor, escribe tu ciudad.");
+            console.error("Error obteniendo ubicación:", error);
+            showToast("No se pudo obtener tu ubicación. Por favor, escribe tu ciudad.", "error");
         }
     });
 
@@ -397,8 +504,6 @@ function setupCityModal() {
         }
     });
 }
-
-
 
 async function getDataWeather() {
     try {
@@ -479,7 +584,6 @@ function updateWeatherUI(data) {
     if (cityName) cityName.textContent = data.name;
 }
 
-
 // ========== POMODORO ==========
 function pomodoroTimer() {
     // DISPLAY ELEMENTS
@@ -557,7 +661,7 @@ function pomodoroTimer() {
                 modeDisplay.textContent = modeText;
 
                 updateDisplay();
-                alert(`¡Tiempo terminado! Siguiente: ${modeDisplay.textContent}`);
+                showToast(`¡Tiempo terminado! Siguiente: ${modeDisplay.textContent}`, "success");
             }
         }, 1000);
     }
@@ -581,13 +685,266 @@ function pomodoroTimer() {
 
 }
 
+// ========== AUTHENTICATION UI ==========
+function setupAuthUI() {
+    const showRegisterBtn = document.getElementById('show-register');
+    const showLoginBtn = document.getElementById('show-login');
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+
+    showRegisterBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        loginForm.classList.remove('active');
+        registerForm.classList.add('active');
+    });
+
+    showLoginBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        registerForm.classList.remove('active');
+        loginForm.classList.add('active');
+    });
+}
+
+// ========== API AUTHENTICATION ==========
+// Detectar si estamos en Live Server o en XAMPP
+const API_URL = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost'
+    ? 'http://dashboard.local/api'  // Live Server → apunta a XAMPP
+    : '/api';  // XAMPP → ruta relativa
+
+async function register(username, email, password) {
+    try {
+        const response = await fetch(`${API_URL}/auth/register.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            showToast('Cuenta creada correctamente. Ahora inicia sesión.', 'success');
+            // Cambiar a formulario de login
+            document.getElementById('register-form').classList.remove('active');
+            document.getElementById('login-form').classList.add('active');
+        } else {
+            showToast('❌ Error: ' + data.message, 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('❌ Error al conectar con el servidor', 'error');
+    }
+}
+
+async function login(username, password) {
+    try {
+        const response = await fetch(`${API_URL}/auth/login.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // Guardar datos del usuario en localStorage
+            localStorage.setItem('user', JSON.stringify(data.user));
+
+            // Ocultar pantalla de auth y mostrar dashboard
+            document.body.classList.remove('not-authenticated');
+            document.body.classList.add('authenticated');
+
+            showToast('¡Inicio de sesión exitoso! Cargando tu dashboard...', 'success');
+
+            // Cargar tareas del usuario
+            loadTasksFromAPI();
+            initDashboard();
+        } else {
+            showToast('❌ Error: ' + data.message, 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('❌ Error al conectar con el servidor', 'error');
+    }
+}
+
+// Event listeners para los formularios
+document.getElementById('register').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const username = document.getElementById('register-username').value;
+    const email = document.getElementById('register-email').value;
+    const password = document.getElementById('register-password').value;
+
+    register(username, email, password);
+});
+
+document.getElementById('login').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const username = document.getElementById('login-username').value;
+    const password = document.getElementById('login-password').value;
+
+    login(username, password);
+});
+
+// ========== API TASKS ==========
+async function loadTasksFromAPI() {
+    try {
+        const response = await fetch(`${API_URL}/tasks/read.php`, {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // Limpiar listas actuales
+            document.getElementById('pending-list').innerHTML = '';
+            document.getElementById('progress-list').innerHTML = '';
+            document.getElementById('completed-list').innerHTML = '';
+
+            // Vaciar array de tareas
+            tasks = [];
+
+            // Cargar tareas desde el servidor
+            if (data.tasks && data.tasks.length > 0) {
+                tasks = data.tasks.map(task => ({
+                    ...task,
+                    id: Number(task.id),
+                    task_order: Number(task.task_order)
+                }));
+
+                const lists = {
+                    "pending": document.getElementById("pending-list"),
+                    "progress": document.getElementById("progress-list"),
+                    "completed": document.getElementById("completed-list")
+                };
+
+                // Ordenar por task_order
+                tasks.sort((a, b) => a.task_order - b.task_order);
+
+                // Crear elementos DOM
+                for (const task of tasks) {
+                    const li = createTaskElement(task.text, task.id, task.state);
+                    const targetList = lists[task.state];
+                    if (targetList) targetList.appendChild(li);
+                }
+            }
+        } else {
+            console.error('Error al cargar tareas:', data.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+// Verificar si hay sesión activa al cargar la página
+async function checkSession() {
+    try {
+        const response = await fetch(`${API_URL}/auth/check_session.php`, {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        const data = await response.json();
+
+        if (data.authenticated) {
+            // Usuario ya está logueado
+            localStorage.setItem('user', JSON.stringify(data.user));
+            document.body.classList.remove('not-authenticated');
+            document.body.classList.add('authenticated');
+
+            // Cargar tareas
+            loadTasksFromAPI();
+
+            // Inicializar el resto del dashboard
+            initDashboard();
+        } else {
+            // No hay sesión, mostrar login
+            document.body.classList.add('not-authenticated');
+        }
+    } catch (error) {
+        console.error('Error checking session:', error);
+        document.body.classList.add('not-authenticated');
+    }
+}
+
+
+// ========== LOGOUT HANDLER (GLOBAL) ==========
+async function handleLogout() {
+    try {
+        const response = await fetch(`${API_URL}/auth/logout.php`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+
+            localStorage.removeItem('user');
+            document.body.classList.remove('authenticated');
+            document.body.classList.add('not-authenticated');
+
+            showToast('Sesión cerrada correctamente', 'success');
+        } else {
+            showToast('Error al cerrar sesión', 'error');
+        }
+
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('Error al cerrar sesión', 'error');
+    }
+}
+
+function setupLogout() {
+    const logoutBtn = document.getElementById('logout-btn');
+
+    if (logoutBtn) {
+        // Quitar listener anterior y añadir uno nuevo con la MISMA función
+        logoutBtn.removeEventListener('click', handleLogout);
+        logoutBtn.addEventListener('click', handleLogout);
+    }
+}
+
+// Inicializar todas las funcionalidades del dashboard
+function initDashboard() {
+    setupCityModal();
+    getDataWeather();
+    setInterval(getDataWeather, 1800000);
+    clock();
+    dateInfo();
+    setInterval(clock, 1000);
+    taskManager();
+    pomodoroTimer();
+}
+
+// ========== TOAST NOTIFICATIONS ==========
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+
+    const icon = type === 'success' ? 'fa-circle-check' :
+        type === 'error' ? 'fa-circle-xmark' :
+            'fa-circle-info';
+
+    toast.innerHTML = `
+        <i class="fa-solid ${icon}"></i>
+        <span>${message}</span>
+    `;
+
+    container.appendChild(toast);
+
+    // Eliminar después de 3 segundos
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
 
 // ========== INICIALIZACIÓN ==========
-setupCityModal();
-getDataWeather();
-setInterval(getDataWeather, 1800000);
-clock();
-dateInfo();
-setInterval(clock, 1000);
-taskManager();
-pomodoroTimer();
+setupAuthUI();
+setupLogout();
+checkSession();
