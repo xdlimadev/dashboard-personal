@@ -160,11 +160,17 @@ function taskManager() {
     const taskList = document.getElementById("pending-list");
     const taskInput = document.getElementById("task-input");
 
+    const form = document.querySelector('.col-2 form');
+    if (!form.hasAttribute('data-listener')) {
+        form.setAttribute('data-listener', 'true');
+        form.addEventListener("submit", (e) => {
+            e.preventDefault();
+            addTask(taskInput, taskList);
+        })
+    }
 
     loadTasks();
     setupDragAndDrop();
-    const form = document.querySelector(".col-2 form");
-    form.addEventListener("submit", (e) => { e.preventDefault(); addTask(taskInput, taskList); });
 }
 
 function loadTasks() {
@@ -908,18 +914,6 @@ function setupLogout() {
     }
 }
 
-// Inicializar todas las funcionalidades del dashboard
-function initDashboard() {
-    setupCityModal();
-    getDataWeather();
-    setInterval(getDataWeather, 1800000);
-    clock();
-    dateInfo();
-    setInterval(clock, 1000);
-    taskManager();
-    pomodoroTimer();
-}
-
 // ========== TOAST NOTIFICATIONS ==========
 function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
@@ -942,6 +936,18 @@ function showToast(message, type = 'info') {
     setTimeout(() => {
         toast.remove();
     }, 3000);
+}
+
+// Inicializar todas las funcionalidades del dashboard
+function initDashboard() {
+    setupCityModal();
+    getDataWeather();
+    setInterval(getDataWeather, 1800000);
+    clock();
+    dateInfo();
+    setInterval(clock, 1000);
+    taskManager();
+    pomodoroTimer();
 }
 
 // ========== INICIALIZACIÓN ==========

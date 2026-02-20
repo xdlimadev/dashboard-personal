@@ -17,11 +17,15 @@ Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador 
 ### 📋 Sistema de Tareas Kanban
 - **Tres columnas:** Pendientes, En Progreso y Completadas
 - **Drag & Drop nativo:** Arrastra tareas entre columnas o dentro de la misma para reordenar
-- **Reordenamiento con persistencia:** El orden de las tareas se mantiene
+- **Reordenamiento con persistencia:** El orden de las tareas se mantiene en la base de datos
+- **Batch updates:** Actualización eficiente de múltiples tareas en una sola petición
+- **Optimistic UI updates:** Cambios instantáneos con rollback automático si falla el servidor
 - **Indicadores visuales:** Líneas moradas muestran dónde se insertará la tarea al arrastrar
 - **Navegación con botones:** Mueve tareas con flechas
+- **Toast notifications:** Feedback visual profesional para todas las acciones
 - **Backend completo:** API REST con CRUD completo de tareas
 - **Sistema multiusuario:** Cada usuario tiene sus propias tareas
+- **Normalización de datos:** Tipos consistentes entre frontend y backend
 
 ### 🍅 Temporizador Pomodoro
 - **Ciclos de trabajo/descanso:** 25 min trabajo, 5 min descanso corto, 15 min descanso largo
@@ -41,9 +45,10 @@ Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador 
 ### 👤 Sistema de Usuarios (Backend)
 - **Registro de usuarios:** Creación de cuentas con validación
 - **Login/Logout:** Autenticación completa con sesiones PHP
-- **Pantalla de autenticación:** Formularios de login y registro integrados en el frontend
-- **Botón de logout:** Visible y funcional en el dashboard
+- **Pantalla de autenticación:** Formularios de login y registro con diseño glassmorphism
+- **Botón de logout integrado:** Visible en el header del dashboard
 - **Verificación de sesión:** Comprobación automática al cargar la página
+- **Toast notifications:** Feedback visual para acciones de autenticación
 - **Encriptación de contraseñas:** Bcrypt para máxima seguridad
 - **Protección contra SQL injection:** Prepared statements en todas las queries
 - **API REST completa:** 9 endpoints JSON funcionales
@@ -55,15 +60,24 @@ Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador 
 - **Fecha completa:** Día de la semana, día, mes y año
 - **Formato personalizado:** Diseño limpio y legible
 
+### 🎨 Diseño Responsive
+- **Optimizado para ultrawide:** Diseñado para monitores 3440x1440 y superiores
+- **Full HD:** Adaptado para 1920x1080
+- **Laptops:** Compatible con 1366px - 1440px
+- **Tablets:** Layout adaptado para 1024px
+- **Variables CSS:** Sistema de personalización fácil con variables CSS
+- **Glassmorphism:** Efecto de vidrio esmerilado con blur
+- **Tema oscuro:** Paleta de colores morados y oscuros
+- **Animaciones suaves:** Transiciones y efectos hover
+
 ---
 
 ## 🛠️ Tecnologías Utilizadas
 
 ### Frontend
 - **HTML5** - Estructura semántica
-- **CSS3** - Diseño con Glassmorphism y animaciones
-- **JavaScript (Vanilla)** - Lógica y funcionalidad
-- **LocalStorage API** - Persistencia temporal de datos
+- **CSS3** - Variables CSS, Flexbox, Media Queries, Glassmorphism y animaciones
+- **JavaScript (Vanilla ES6+)** - Lógica y funcionalidad
 - **Drag & Drop API** - Interacción nativa HTML5
 - **Geolocation API** - Detección automática de ubicación
 - **Fetch API** - Consumo de APIs
@@ -105,7 +119,6 @@ cd dashboard-personal
 1. Abre `http://localhost/phpmyadmin`
 2. Crea una nueva base de datos llamada `dashboard_db`
 3. Ejecuta estos comandos SQL:
-
 ```sql
 -- Crear base de datos
 CREATE DATABASE dashboard_db CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
@@ -163,11 +176,10 @@ http://dashboard.local
 ---
 
 ## 📁 Estructura del Proyecto
-
 ```
 dashboard-personal/
 ├── index.html              # Página principal (incluye UI de login/registro)
-├── style.css               # Estilos y diseño
+├── style.css               # Estilos con variables CSS y responsive
 ├── script.js               # Lógica del frontend
 ├── api/                    # Backend PHP
 │   ├── config/
@@ -204,6 +216,8 @@ dashboard-personal/
 - ✅ **Validación de formularios:** Prevención de datos vacíos
 - ✅ **CORS Headers:** Control de acceso
 - ✅ **Sanitización de inputs:** Prevención de XSS
+- ✅ **Optimistic updates con rollback:** Reversión automática si falla el servidor
+- ✅ **Normalización de tipos:** Consistencia entre frontend y backend
 
 ---
 
@@ -220,7 +234,6 @@ http://dashboard.local/api
 
 #### 1. Registro de usuario
 Crea una nueva cuenta de usuario.
-
 ```http
 POST /auth/register.php
 Content-Type: application/json
@@ -250,7 +263,6 @@ Content-Type: application/json
 
 #### 2. Inicio de sesión
 Autentica un usuario y crea una sesión.
-
 ```http
 POST /auth/login.php
 Content-Type: application/json
@@ -281,7 +293,6 @@ Content-Type: application/json
 
 #### 3. Cerrar sesión
 Destruye la sesión del usuario.
-
 ```http
 POST /auth/logout.php
 ```
@@ -298,7 +309,6 @@ POST /auth/logout.php
 
 #### 4. Verificar sesión
 Comprueba si hay una sesión activa. Usado al cargar la página para decidir si mostrar el dashboard o la pantalla de login.
-
 ```http
 GET /auth/check_session.php
 ```
@@ -331,7 +341,6 @@ GET /auth/check_session.php
 
 #### 5. Crear tarea
 Crea una nueva tarea para el usuario autenticado.
-
 ```http
 POST /tasks/create.php
 Content-Type: application/json
@@ -364,7 +373,6 @@ Content-Type: application/json
 
 #### 6. Leer tareas
 Obtiene todas las tareas del usuario autenticado, ordenadas por `task_order`.
-
 ```http
 GET /tasks/read.php
 ```
@@ -395,7 +403,6 @@ GET /tasks/read.php
 
 #### 7. Actualizar tarea
 Actualiza una tarea existente del usuario autenticado.
-
 ```http
 PUT /tasks/update.php
 Content-Type: application/json
@@ -425,7 +432,6 @@ Content-Type: application/json
 
 #### 8. Actualizar orden de tareas (batch)
 Actualiza el `task_order` de múltiples tareas en una sola petición. Se usa al reordenar con drag & drop.
-
 ```http
 POST /tasks/update_order.php
 Content-Type: application/json
@@ -456,7 +462,6 @@ Content-Type: application/json
 
 #### 9. Eliminar tarea
 Elimina una tarea del usuario autenticado.
-
 ```http
 DELETE /tasks/delete.php
 Content-Type: application/json
@@ -514,15 +519,60 @@ curl -X GET http://dashboard.local/api/tasks/read.php \
 
 ---
 
-## 🎨 Características de Diseño
+## 🎨 Personalización con Variables CSS
 
-- **Glassmorphism:** Efecto de vidrio esmerilado con blur
-- **Tema oscuro:** Paleta de colores morados y oscuros
-- **Responsive:** Adaptable a diferentes tamaños de pantalla
-- **Animaciones suaves:** Transiciones y efectos hover
-- **Scrollbar personalizada:** Diseño consistente con el tema
-- **Indicadores visuales:** Feedback en tiempo real
-- **Modal moderno:** Interfaz elegante para configuraciones
+El dashboard utiliza un sistema completo de variables CSS para fácil personalización:
+```css
+:root {
+    /* Espaciados */
+    --spacing-xs: 6px;
+    --spacing-sm: 10px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+
+    /* Tamaños de fuente */
+    --font-xs: 0.75rem;
+    --font-sm: 0.85rem;
+    --font-md: 0.95rem;
+    --font-lg: 1.1rem;
+    --font-xl: 1.5rem;
+    --font-xxl: 2.5rem;
+
+    /* Tamaños de tarjetas */
+    --card-small: 350px;
+    --card-mid: 537.5px;
+    --card-large: 1100px;
+
+    /* Tamaños de columnas de tareas */
+    --task-col-min: 320px;
+    --task-col-max: 400px;
+    --task-col-height: 450px;
+
+    /* Colores */
+    --color-primary: #a771f5;
+    --color-bg: rgba(167, 113, 245, 0.15);
+    --color-border: rgba(255, 255, 255, 0.2);
+
+    /* Bordes y sombras */
+    --radius-sm: 8px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+```
+
+---
+
+## 📱 Breakpoints Responsive
+
+- **Ultrawide**: 3440px - 1921px (diseño optimizado)
+- **Full HD**: 1920px - 1441px
+- **Laptop**: 1440px - 1367px
+- **Laptop Small**: 1366px - 1025px
+- **Tablet**: 1024px - 769px (layout adaptado, columnas apiladas)
+- **Mobile**: 768px y menor (pendiente de implementación)
 
 ---
 
@@ -538,6 +588,7 @@ curl -X GET http://dashboard.local/api/tasks/read.php \
 - **Mover:** Botones de flecha o drag & drop entre columnas
 - **Reordenar:** Arrastra dentro de la misma columna
 - **Eliminar:** Click en ✖
+- **Feedback visual:** Toast notifications para todas las acciones
 
 ### Configurar Ubicación del Clima
 1. **Primera vez:** Permite geolocalización o busca tu ciudad
@@ -578,6 +629,10 @@ curl -X GET http://dashboard.local/api/tasks/read.php \
 - Requiere HTTPS (no funciona con HTTP en móviles)
 - Considera desplegar en GitHub Pages o Netlify
 
+### Tareas duplicadas al crear
+- Verifica que `taskManager()` se llame solo una vez en la inicialización
+- No debe estar dentro de `initDashboard()`
+
 ---
 
 ## 🚧 Próximas Mejoras
@@ -585,12 +640,20 @@ curl -X GET http://dashboard.local/api/tasks/read.php \
 ### Completado recientemente ✅
 - [x] Conectar frontend con backend (reemplazar localStorage)
 - [x] Formularios de login/registro en la interfaz
-- [x] Botón de logout visible y funcional
+- [x] Botón de logout integrado en el header
 - [x] Sincronización automática de tareas con la API
 - [x] Verificación de sesión al cargar la página
 - [x] Reordenamiento por drag & drop con persistencia en BD
+- [x] Optimistic updates con rollback automático
+- [x] Toast notifications profesionales
+- [x] Batch processing para actualización de orden
+- [x] Variables CSS para personalización
+- [x] Diseño responsive (ultrawide, Full HD, laptop, tablet)
+- [x] Normalización de tipos de datos
+- [x] Prevención de listeners duplicados
 
 ### Pendiente
+- [ ] Responsive para móviles (768px y menor)
 - [ ] Notas Rápidas guardadas en backend (actualmente en localStorage)
 - [ ] Recuperación de contraseña
 - [ ] Validación de email con código
@@ -618,7 +681,7 @@ Este proyecto es de código abierto y está disponible para uso personal y educa
 
 ## 👨‍💻 Autor
 
-**Bruno** - [GitHub](https://github.com/xdlimadev)
+**Bruno de Lima** - [GitHub](https://github.com/xdlimadev)
 
 ---
 
@@ -626,12 +689,12 @@ Este proyecto es de código abierto y está disponible para uso personal y educa
 
 ### Frontend
 - HTML5 semántico
-- CSS3 avanzado (Flexbox, Grid, Animations)
-- JavaScript ES6+ (Async/Await, Fetch, Classes)
+- CSS3 avanzado (Variables CSS, Flexbox, Media Queries, Animations)
+- JavaScript ES6+ (Async/Await, Fetch, Classes, Optimistic Updates)
 - DOM Manipulation
-- Local Storage
 - Drag & Drop API
 - Geolocation API
+- Error Handling & Rollback Patterns
 
 ### Backend
 - PHP OOP (Clases, Métodos)
@@ -639,10 +702,11 @@ Este proyecto es de código abierto y está disponible para uso personal y educa
 - PDO (Prepared Statements)
 - Sessions (Autenticación)
 - Password Hashing (BCRYPT)
-- REST API Design (CRUD completo)
+- REST API Design (CRUD completo + batch operations)
 - JSON Manipulation
 - HTTP Status Codes
 - Security Best Practices
+- Data Normalization
 
 ### DevOps
 - Git & GitHub
@@ -654,3 +718,8 @@ Este proyecto es de código abierto y está disponible para uso personal y educa
 ---
 
 ⭐ Si te gusta este proyecto, dale una estrella en GitHub!
+
+---
+
+**Versión:** 3.0  
+**Última actualización:** Febrero 2026
