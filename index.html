@@ -133,6 +133,20 @@
         </section>
 
         <section class="col-2">
+            <!-- Gráfico Donut - Estados -->
+            <div class="mid-card">
+                <h3 class="title-card">Estado de Tareas</h3>
+                <canvas id="chart-donut"></canvas>
+            </div>
+
+            <!-- Gráfico Líneas - Progreso -->
+            <div class="mid-card">
+                <h3 class="title-card">Progreso (7 días)</h3>
+                <canvas id="chart-lines"></canvas>
+            </div>
+        </section>
+
+        <section class="col-2">
             <div class="mid-card">
                 <div class="card">
                     <div class="title-card">
@@ -182,12 +196,12 @@
                 <button id="retry-location-btn">Reintentar geolocalización</button>
             </div>
         </div>
-    </div>
+    </div> -->
 
     <div class="toast-container" id="toast-container"></div>
 
-    <script src="script.js">
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="script.js"></script>
 </body>
 
 </html>

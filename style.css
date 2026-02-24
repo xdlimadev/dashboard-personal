@@ -65,9 +65,9 @@ body {
     padding: var(--spacing-md) var(--spacing-xl);
     box-shadow: var(--shadow-md);
     margin-bottom: var(--spacing-xl);
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .title-dashboard h1 {
@@ -119,7 +119,7 @@ body {
     flex-shrink: 0;
 }
 
-.title-card h2{
+.title-card h2 {
     font-size: var(--font-lg);
 }
 
@@ -365,6 +365,13 @@ body {
     }
 }
 
+/* Gráficos de estadísticas */
+#chart-donut,
+#chart-lines {
+    max-height: 250px;
+    width: 100%;
+}
+
 /* ========== BOTONES ========== */
 .btn-container {
     display: flex;
@@ -548,7 +555,8 @@ body {
 }
 
 .weather-text .temperature {
-    font-size: 1.5rem !important;  /* Grande */
+    font-size: 1.5rem !important;
+    /* Grande */
     font-weight: 700;
     margin: 0;
 }

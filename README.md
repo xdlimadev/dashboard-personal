@@ -5,10 +5,11 @@
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 ![PHP](https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
-![Version](https://img.shields.io/badge/version-3.1-blue?style=for-the-badge)
+![Chart.js](https://img.shields.io/badge/Chart.js-FF6384?style=for-the-badge&logo=chartdotjs&logoColor=white)
+![Version](https://img.shields.io/badge/version-3.2-blue?style=for-the-badge)
 ![Status](https://img.shields.io/badge/status-active-success?style=for-the-badge)
 
-Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador Pomodoro, widget del clima en tiempo real y **API REST completa** con PHP y MySQL.
+Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador Pomodoro, widget del clima en tiempo real, **estadísticas con gráficos interactivos** y **API REST completa** con PHP y MySQL.
 
 ---
 
@@ -26,6 +27,15 @@ Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador 
 - **Backend completo:** API REST con CRUD completo de tareas
 - **Sistema multiusuario:** Cada usuario tiene sus propias tareas
 - **Normalización de datos:** Tipos consistentes entre frontend y backend
+- **Tracking temporal:** Fecha de completado guardada para estadísticas
+
+### 📊 Estadísticas y Analytics **[NUEVO]**
+- **Gráfico Donut:** Visualización del estado actual de tareas (Pendientes, En Progreso, Completadas)
+- **Gráfico de Líneas:** Progreso de tareas completadas en los últimos 7 días
+- **Actualización en tiempo real:** Los gráficos se actualizan automáticamente al mover tareas
+- **Colores distintivos:** Naranja (pendientes), Azul (progreso), Verde (completadas)
+- **Chart.js:** Gráficos interactivos y responsive
+- **Endpoint optimizado:** Query con GROUP BY para timeline eficiente
 
 ### 🍅 Temporizador Pomodoro
 - **Ciclos de trabajo/descanso:** 25 min trabajo, 5 min descanso corto, 15 min descanso largo
@@ -53,7 +63,7 @@ Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador 
 - **Toast notifications:** Feedback visual para acciones de autenticación
 - **Encriptación de contraseñas:** Bcrypt para máxima seguridad
 - **Protección contra SQL injection:** Prepared statements en todas las queries
-- **API REST completa:** 10 endpoints JSON funcionales
+- **API REST completa:** 11 endpoints JSON funcionales
 - **Base de datos relacional:** MySQL con tablas relacionadas por FOREIGN KEY
 - **Seguridad por usuario:** Cada usuario solo puede ver/modificar sus propias tareas
 
@@ -80,6 +90,7 @@ Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador 
 - **HTML5** - Estructura semántica
 - **CSS3** - Variables CSS, Flexbox, Media Queries, Glassmorphism y animaciones
 - **JavaScript (Vanilla ES6+)** - Lógica y funcionalidad
+- **Chart.js 4.4.0** - Gráficos interactivos y visualización de datos
 - **Drag & Drop API** - Interacción nativa HTML5
 - **Geolocation API** - Detección automática de ubicación
 - **Fetch API** - Consumo de APIs
@@ -103,7 +114,7 @@ Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador 
 ### Requisitos previos
 - **XAMPP** (Apache + MySQL + PHP) o equivalente
 - Navegador web moderno
-- Conexión a internet (para widget del clima)
+- Conexión a internet (para widget del clima y Chart.js CDN)
 - Cuenta en OpenWeatherMap (API Key gratuita)
 
 ### Paso 1: Clonar el repositorio
@@ -143,9 +154,18 @@ CREATE TABLE tasks (
     text VARCHAR(255) NOT NULL,
     state ENUM('pending', 'progress', 'completed') DEFAULT 'pending',
     task_order INT DEFAULT 0,
+    completed_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
+#### Migración de datos (si tienes tareas antiguas)
+Si ya tenías tareas completadas antes de la v3.2, ejecuta esto para poblar las estadísticas:
+```sql
+UPDATE tasks 
+SET completed_at = created_at 
+WHERE state = 'completed' AND completed_at IS NULL;
 ```
 
 ### Paso 4: Configurar credenciales de la base de datos
@@ -198,7 +218,7 @@ http://dashboard.local
 dashboard-personal/
 ├── index.html              # Página principal (incluye UI de login/registro)
 ├── style.css               # Estilos con variables CSS y responsive
-├── script.js               # Lógica del frontend
+├── script.js               # Lógica del frontend + Chart.js
 ├── api/                    # Backend PHP
 │   ├── config/
 │   │   ├── database.php        # Configuración de la BD
@@ -212,9 +232,10 @@ dashboard-personal/
 │   ├── tasks/
 │   │   ├── create.php      # Crear tarea
 │   │   ├── read.php        # Leer tareas
-│   │   ├── update.php      # Actualizar tarea (texto, estado)
+│   │   ├── update.php      # Actualizar tarea (texto, estado, completed_at)
 │   │   ├── update_order.php# Actualizar orden de tareas (batch)
-│   │   └── delete.php      # Eliminar tarea
+│   │   ├── delete.php      # Eliminar tarea
+│   │   └── stats.php       # Estadísticas (conteos y timeline) [NUEVO]
 │   └── weather/
 │       └── get_weather.php # Proxy para API del clima (protege API Key)
 ├── .gitignore              # Archivos ignorados por Git
@@ -228,6 +249,7 @@ dashboard-personal/
 ### Backend
 - ✅ **Encriptación de contraseñas:** `password_hash()` con BCRYPT
 - ✅ **Prepared Statements:** Prevención de SQL injection en todas las queries
+- ✅ **Named parameters:** Uso consistente de PDO con `:param` syntax
 - ✅ **Validación de datos:** Verificación de inputs en todos los endpoints
 - ✅ **Sessions PHP:** Gestión segura de autenticación
 - ✅ **Protección por usuario:** Verificación de `user_id` en WHERE clauses
@@ -272,17 +294,7 @@ Content-Type: application/json
 
 **Respuestas:**
 - `201 Created` - Usuario creado correctamente
-```json
-{
-    "message": "User registered successfully"
-}
-```
 - `400 Bad Request` - Usuario o email ya existe / Datos incompletos
-```json
-{
-    "message": "User or email already exists"
-}
-```
 
 ---
 
@@ -300,19 +312,8 @@ Content-Type: application/json
 
 **Respuestas:**
 - `200 OK` - Login exitoso
-```json
-{
-    "message": "Login successful",
-    "user": {
-        "id": 1,
-        "username": "usuario",
-        "email": "email@ejemplo.com"
-    }
-}
-```
 - `401 Unauthorized` - Contraseña incorrecta
 - `404 Not Found` - Usuario no encontrado
-- `400 Bad Request` - Datos incompletos
 
 ---
 
@@ -324,37 +325,18 @@ POST /auth/logout.php
 
 **Respuestas:**
 - `200 OK` - Sesión cerrada
-```json
-{
-    "message": "Logged out successfully"
-}
-```
 
 ---
 
 #### 4. Verificar sesión
-Comprueba si hay una sesión activa. Usado al cargar la página para decidir si mostrar el dashboard o la pantalla de login.
+Comprueba si hay una sesión activa.
 ```http
 GET /auth/check_session.php
 ```
 
 **Respuestas:**
 - `200 OK` - Sesión activa
-```json
-{
-    "authenticated": true,
-    "user": {
-        "id": 1,
-        "username": "usuario"
-    }
-}
-```
 - `401 Unauthorized` - Sin sesión activa
-```json
-{
-    "authenticated": false
-}
-```
 
 ---
 
@@ -372,62 +354,23 @@ Content-Type: application/json
 
 {
     "text": "Nombre de la tarea",
-    "state": "pending",          // Opcional: pending, progress, completed
-    "task_order": 0              // Opcional: número de orden
+    "state": "pending",
+    "task_order": 0
 }
 ```
-
-**Respuestas:**
-- `201 Created` - Tarea creada
-```json
-{
-    "message": "Task created successfully",
-    "task": {
-        "id": 1,
-        "text": "Nombre de la tarea",
-        "state": "pending",
-        "task_order": 0
-    }
-}
-```
-- `401 Unauthorized` - Usuario no autenticado
-- `400 Bad Request` - Datos incompletos
-- `500 Internal Server Error` - Error al crear
 
 ---
 
 #### 6. Leer tareas
-Obtiene todas las tareas del usuario autenticado, ordenadas por `task_order`.
+Obtiene todas las tareas del usuario autenticado.
 ```http
 GET /tasks/read.php
 ```
 
-**Respuestas:**
-- `200 OK` - Tareas obtenidas
-```json
-{
-    "tasks": [
-        {
-            "id": 1,
-            "text": "Tarea 1",
-            "state": "pending",
-            "task_order": 0
-        },
-        {
-            "id": 2,
-            "text": "Tarea 2",
-            "state": "progress",
-            "task_order": 1
-        }
-    ]
-}
-```
-- `401 Unauthorized` - Usuario no autenticado
-
 ---
 
 #### 7. Actualizar tarea
-Actualiza una tarea existente del usuario autenticado.
+Actualiza una tarea existente. Automáticamente actualiza `completed_at` según el estado.
 ```http
 PUT /tasks/update.php
 Content-Type: application/json
@@ -435,28 +378,17 @@ Content-Type: application/json
 {
     "id": 1,
     "text": "Tarea actualizada",
-    "state": "progress",
+    "state": "completed",
     "task_order": 0
 }
 ```
 
-**Respuestas:**
-- `200 OK` - Tarea actualizada
-```json
-{
-    "message": "Task updated successfully"
-}
-```
-- `401 Unauthorized` - Usuario no autenticado
-- `400 Bad Request` - ID de tarea no proporcionado
-- `500 Internal Server Error` - Error al actualizar
-
-> **Nota de seguridad:** Solo se actualizan tareas que pertenecen al usuario autenticado (verificado con `user_id` en WHERE).
+> **Nota:** Si `state = 'completed'`, `completed_at` se actualiza a NOW(). Si `state != 'completed'`, `completed_at` se pone en NULL.
 
 ---
 
-#### 8. Actualizar orden de tareas (batch)
-Actualiza el `task_order` de múltiples tareas en una sola petición. Se usa al reordenar con drag & drop.
+#### 8. Actualizar orden (batch)
+Actualiza el orden de múltiples tareas en una petición.
 ```http
 POST /tasks/update_order.php
 Content-Type: application/json
@@ -464,24 +396,10 @@ Content-Type: application/json
 {
     "tasks": [
         { "id": 1, "task_order": 0 },
-        { "id": 2, "task_order": 1 },
-        { "id": 3, "task_order": 2 }
+        { "id": 2, "task_order": 1 }
     ]
 }
 ```
-
-**Respuestas:**
-- `200 OK` - Orden actualizado
-```json
-{
-    "message": "Tasks order updated successfully"
-}
-```
-- `401 Unauthorized` - Usuario no autenticado
-- `400 Bad Request` - Datos inválidos o array vacío
-- `500 Internal Server Error` - Error al actualizar
-
-> **Nota de seguridad:** Solo se actualizan tareas que pertenecen al usuario autenticado (verificado con `user_id` en WHERE).
 
 ---
 
@@ -496,24 +414,44 @@ Content-Type: application/json
 }
 ```
 
-**Respuestas:**
-- `200 OK` - Tarea eliminada
+---
+
+### 📊 Estadísticas **[NUEVO]**
+
+#### 10. Obtener estadísticas
+Devuelve conteos por estado y timeline de tareas completadas.
+```http
+GET /tasks/stats.php
+```
+
+**Respuesta exitosa (200 OK):**
 ```json
 {
-    "message": "Task deleted successfully"
+    "pending": 5,
+    "progress": 3,
+    "completed": 12,
+    "timeline": [
+        {"date": "2026-02-18", "count": 2},
+        {"date": "2026-02-19", "count": 5},
+        {"date": "2026-02-20", "count": 1}
+    ]
 }
 ```
-- `401 Unauthorized` - Usuario no autenticado
-- `400 Bad Request` - ID de tarea no proporcionado
-- `500 Internal Server Error` - Error al eliminar
 
-> **Nota de seguridad:** Solo se eliminan tareas que pertenecen al usuario autenticado (verificado con `user_id` en WHERE).
+**Detalles:**
+- `pending`, `progress`, `completed`: Conteo actual de tareas en cada estado
+- `timeline`: Array con fechas y cantidad de tareas completadas en los últimos 7 días
+- Solo incluye días donde se completaron tareas (días sin tareas completadas no aparecen)
+
+**Uso:**
+- Gráfico Donut: Usa `pending`, `progress`, `completed`
+- Gráfico de Líneas: Usa `timeline`
 
 ---
 
 ### 🌤️ Clima
 
-#### 10. Obtener datos del clima
+#### 11. Obtener datos del clima
 Endpoint proxy que protege la API Key de OpenWeatherMap.
 ```http
 GET /weather/get_weather.php?city=Madrid
@@ -524,68 +462,25 @@ GET /weather/get_weather.php?city=Madrid
 GET /weather/get_weather.php?lat=40.4168&lon=-3.7038
 ```
 
-**Respuestas:**
-- `200 OK` - Datos del clima obtenidos
-```json
-{
-    "coord": {"lon": -3.7026, "lat": 40.4165},
-    "weather": [{"main": "Clear", "description": "cielo claro"}],
-    "main": {
-        "temp": 15.05,
-        "temp_min": 12.68,
-        "temp_max": 16.56,
-        "humidity": 53
-    },
-    "wind": {"speed": 2.06},
-    "name": "Madrid"
-}
-```
-- `400 Bad Request` - Parámetros requeridos no proporcionados
-- `500 Internal Server Error` - Error al obtener datos del clima
-
-> **Nota de seguridad:** La API Key de OpenWeatherMap nunca se expone al cliente. Todas las peticiones pasan por el backend.
-
 ---
 
 ## 🧪 Pruebas de la API
 
 ### Con Thunder Client (VS Code)
 1. Instala la extensión "Thunder Client"
-2. Crea requests según la documentación anterior
+2. Crea requests según la documentación
 3. Usa las sesiones para mantener la autenticación
 
-### Con cURL (Terminal)
+### Probar estadísticas
 ```bash
-# Registro
-curl -X POST http://dashboard.local/api/auth/register.php \
-  -H "Content-Type: application/json" \
-  -d '{"username":"test","email":"test@test.com","password":"12345"}'
-
-# Login
-curl -X POST http://dashboard.local/api/auth/login.php \
-  -H "Content-Type: application/json" \
-  -d '{"username":"test","password":"12345"}' \
-  -c cookies.txt
-
-# Crear tarea (usando cookies de login)
-curl -X POST http://dashboard.local/api/tasks/create.php \
-  -H "Content-Type: application/json" \
-  -b cookies.txt \
-  -d '{"text":"Mi tarea"}'
-
-# Leer tareas
-curl -X GET http://dashboard.local/api/tasks/read.php \
+# Obtener stats (requiere sesión activa)
+curl -X GET http://dashboard.local/api/tasks/stats.php \
   -b cookies.txt
-
-# Obtener clima
-curl -X GET http://dashboard.local/api/weather/get_weather.php?city=Madrid
 ```
 
 ---
 
 ## 🎨 Personalización con Variables CSS
-
-El dashboard utiliza un sistema completo de variables CSS para fácil personalización:
 ```css
 :root {
     /* Espaciados */
@@ -617,13 +512,6 @@ El dashboard utiliza un sistema completo de variables CSS para fácil personaliz
     --color-primary: #a771f5;
     --color-bg: rgba(167, 113, 245, 0.15);
     --color-border: rgba(255, 255, 255, 0.2);
-
-    /* Bordes y sombras */
-    --radius-sm: 8px;
-    --radius-md: 10px;
-    --radius-lg: 16px;
-    --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.1);
-    --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 ```
 
@@ -654,11 +542,14 @@ El dashboard utiliza un sistema completo de variables CSS para fácil personaliz
 - **Eliminar:** Click en ✖
 - **Feedback visual:** Toast notifications para todas las acciones
 
+### Ver Estadísticas **[NUEVO]**
+- **Gráfico Donut:** Muestra distribución actual de tareas
+- **Gráfico de Líneas:** Muestra progreso de los últimos 7 días
+- **Actualización automática:** Los gráficos se actualizan al mover tareas
+
 ### Configurar Ubicación del Clima
 1. **Primera vez:** Permite geolocalización o busca tu ciudad
 2. **Cambiar:** Click en 📍 junto al nombre de la ciudad
-
-> **Nota:** La geolocalización solo funciona en HTTPS o localhost por seguridad del navegador.
 
 ### Usar el Pomodoro
 - **▶** Iniciar
@@ -672,72 +563,53 @@ El dashboard utiliza un sistema completo de variables CSS para fácil personaliz
 ### La base de datos no se conecta
 - Verifica que MySQL esté corriendo en XAMPP
 - Comprueba las credenciales en `api/config/database.php`
-- Asegúrate de haber creado la base de datos `dashboard_db`
 
-### Error "Headers already sent"
-- Verifica que no haya espacios antes de `<?php`
-- NO uses `?>` al final de archivos PHP puros
-- Asegúrate de que los archivos estén en UTF-8 sin BOM
+### Error "Column 'completed_at' not found"
+Ejecuta esta migración:
+```sql
+ALTER TABLE tasks ADD COLUMN completed_at TIMESTAMP NULL AFTER task_order;
+```
 
-### Error "Column not found: task_order"
-- Ejecuta: `ALTER TABLE tasks ADD COLUMN task_order INT DEFAULT 0 AFTER state;`
+### Los gráficos no se muestran
+- Verifica que Chart.js se cargue correctamente (revisa consola F12)
+- Asegúrate de que el CDN de Chart.js esté en el HTML antes de `script.js`
+- Verifica que `stats.php` devuelva datos correctos
 
-### Sesiones no persisten en Thunder Client
-- Es normal, Thunder Client no mantiene cookies entre requests
-- Las sesiones funcionarán correctamente cuando conectes el frontend
+### Los gráficos están vacíos
+- Completa algunas tareas primero
+- Verifica en phpMyAdmin que las tareas completadas tengan `completed_at` no NULL
+- Si tienes tareas antiguas, ejecuta la migración de datos
 
-### No aparece el clima
-- Verifica que hayas configurado correctamente `api/config/secrets.php`
-- Comprueba tu API Key de OpenWeatherMap (que esté activa, puede tardar 10-15 min)
-- Revisa la consola del navegador para errores
-- Prueba acceder directamente: `http://dashboard.local/api/weather/get_weather.php?city=Madrid`
-
-### Error "secrets.php not found"
-- Copia `secrets.example.php` como `secrets.php` en `api/config/`
-- Añade tu API Key de OpenWeatherMap
-
-### Geolocalización no funciona
-- Requiere HTTPS (no funciona con HTTP en móviles/producción)
-- En desarrollo funciona con `localhost` pero no con `dashboard.local`
-- Considera desplegar en GitHub Pages, Netlify o Vercel (HTTPS automático)
-
-### Tareas duplicadas al crear
-- Verifica que `taskManager()` se llame solo una vez en la inicialización
-- Verifica que tiene el atributo `data-listener` en el formulario
+### Los colores del donut no se ven
+- Verifica que `maintainAspectRatio: false` esté en las opciones
+- Asegúrate de que los colores sean vibrantes (no oscuros)
 
 ---
 
 ## 🚧 Próximas Mejoras
 
 ### Completado recientemente ✅
-- [x] Conectar frontend con backend (reemplazar localStorage)
-- [x] Formularios de login/registro en la interfaz
-- [x] Botón de logout integrado en el header
-- [x] Sincronización automática de tareas con la API
-- [x] Verificación de sesión al cargar la página
-- [x] Reordenamiento por drag & drop con persistencia en BD
-- [x] Optimistic updates con rollback automático
+- [x] Conectar frontend con backend
+- [x] Sistema de autenticación completo
+- [x] Optimistic updates con rollback
 - [x] Toast notifications profesionales
-- [x] Batch processing para actualización de orden
-- [x] Variables CSS para personalización
+- [x] Batch processing
+- [x] Variables CSS
 - [x] Diseño responsive (ultrawide, Full HD, laptop, tablet)
-- [x] Normalización de tipos de datos
-- [x] Prevención de listeners duplicados
-- [x] **Protección de API Keys en backend**
-- [x] **Archivo de secretos excluido de Git**
-- [x] **Proxy backend para API del clima**
+- [x] Protección de API Keys
+- [x] **Sistema de estadísticas con gráficos**
+- [x] **Tracking de fecha de completado**
+- [x] **Actualización de gráficos en tiempo real**
 
 ### Pendiente
 - [ ] Responsive para móviles (768px y menor)
-- [ ] Notas Rápidas guardadas en backend
+- [ ] Filtros de timeline (últimos 30 días, por mes)
+- [ ] Estadísticas adicionales (tareas por día de la semana, productividad por hora)
+- [ ] Exportar gráficos como imagen
+- [ ] Crear Notas Rápidas guardadas en backend
 - [ ] Recuperación de contraseña
-- [ ] Validación de email con código
-- [ ] Panel de administración de usuarios
 - [ ] Modo oscuro/claro toggle
-- [ ] Exportar/importar tareas
-- [ ] Notificaciones del Pomodoro
-- [ ] Gráficos de productividad
-- [ ] Aplicación móvil (PWA)
+- [ ] PWA (Progressive Web App)
 - [ ] Deploy en producción con HTTPS
 
 ---
@@ -766,6 +638,7 @@ Este proyecto es de código abierto y está disponible para uso personal y educa
 - HTML5 semántico
 - CSS3 avanzado (Variables CSS, Flexbox, Media Queries, Animations)
 - JavaScript ES6+ (Async/Await, Fetch, Classes, Optimistic Updates)
+- Chart.js (Gráficos interactivos: Donut, Line)
 - DOM Manipulation
 - Drag & Drop API
 - Geolocation API
@@ -774,15 +647,16 @@ Este proyecto es de código abierto y está disponible para uso personal y educa
 ### Backend
 - PHP OOP (Clases, Métodos)
 - MySQL (DDL, DML, Relaciones, FOREIGN KEY)
-- PDO (Prepared Statements)
+- PDO (Prepared Statements, Named Parameters)
 - Sessions (Autenticación)
 - Password Hashing (BCRYPT)
-- REST API Design (CRUD completo + batch operations + proxy endpoints)
+- REST API Design (CRUD + batch + stats endpoints)
+- SQL Aggregation (SUM, COUNT, GROUP BY, DATE functions)
 - JSON Manipulation
 - HTTP Status Codes
 - Security Best Practices (API Key protection, secrets management)
 - Data Normalization
-- Environment Variables Pattern
+- Database Migrations
 
 ### DevOps & Security
 - Git & GitHub
@@ -791,7 +665,8 @@ Este proyecto es de código abierto y está disponible para uso personal y educa
 - Virtual Hosts
 - phpMyAdmin
 - API Testing (Thunder Client)
-- Secrets Management (environment-based configuration)
+- Secrets Management
+- Environment-based configuration
 
 ---
 
@@ -799,5 +674,5 @@ Este proyecto es de código abierto y está disponible para uso personal y educa
 
 ---
 
-**Versión:** 3.1  
+**Versión:** 3.2  
 **Última actualización:** Febrero 2026

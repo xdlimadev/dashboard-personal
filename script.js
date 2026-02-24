@@ -92,19 +92,12 @@ async function moveTask(completeBtn, li) {
         const task = tasks.find(t => t.id === taskId);
 
         const oldState = task.state;
+        const newState = task.state === "pending" ? "progress" : "completed";
 
-        let newState = task.state;
-        if (task.state === "pending") {
-            newState = "progress";
-        } else if (task.state === "progress") {
-            newState = "completed";
-        }
-
-        task.state = newState;
         const destinationList = document.getElementById(`${task.state}-list`);
         destinationList.appendChild(li);
 
-        if (task.state === "completed") {
+        if (newState === "completed") {
             completeBtn.style.display = "none";
         }
 
@@ -125,6 +118,8 @@ async function moveTask(completeBtn, li) {
         if (response.ok) {
             updateTaskOrder(`${oldState}-list`);
             updateTaskOrder(`${newState}-list`);
+            loadStats();
+
         } else {
             await loadTasksFromAPI();
             showToast('Error al actualizar tarea', 'error');
@@ -337,6 +332,7 @@ async function updateTaskState(taskId, newState) {
     if (response.ok) {
         updateTaskOrder(`${oldState}-list`);
         updateTaskOrder(`${newState}-list`);
+        loadStats();
     } else {
         await loadTasksFromAPI();
         showToast('Error al mover tarea.', 'error');
@@ -398,6 +394,140 @@ async function updateTaskOrder(listId) {
         await loadTasksFromAPI();
         showToast('Error al actualizar orden', 'error');
     }
+}
+
+// ====== ESTADÍSTICAS TAREAS ======
+let donutChart = null;
+let lineChart = null;
+
+async function loadStats() {
+    try {
+        const response = await fetch(`${API_URL}/tasks/stats.php`, {
+            credentials: 'include'
+        });
+
+        if (!response.ok) throw new Error('Error al cargar estadísticas');
+
+        const data = await response.json();
+
+        createDonutChart(data);
+        createLineChart(data);
+
+    } catch (error) {
+        console.error('Error cargando estadísticas: ', error)
+    }
+
+}
+
+function createDonutChart(data) {
+
+    const ctx = document.getElementById('chart-donut')
+
+    if (donutChart) donutChart.destroy();
+
+    donutChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Pendientes', 'En progreso', 'Completadas'],
+            datasets: [{
+                data: [data.pending, data.progress, data.completed],
+                backgroundColor: [
+                    'rgba(255, 167, 38, 0.8)',
+                    'rgba(66, 165, 245, 0.8)',
+                    'rgba(102, 187, 106, 0.8)'
+                ],
+                borderWidth: 2,
+                borderColor: '#FFFFFF',
+                hoverBorderWidth: 2,
+                hoverBorderColor: '#FFFFFF'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#FFFFFF',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        padding: 15,
+                        usePointStyle: true
+                    }
+                }
+            }
+        }
+    });
+}
+
+function createLineChart(data) {
+    const ctx = document.getElementById('chart-lines');
+
+    // Si ya existe el gráfico, destruirlo primero
+    if (lineChart) {
+        lineChart.destroy();
+    }
+
+    // Extraer fechas y conteos del timeline
+    const labels = data.timeline.map(item => {
+        const date = new Date(item.date);
+        return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+    });
+
+    const counts = data.timeline.map(item => item.count);
+
+    lineChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Tareas completadas',
+                data: counts,
+                borderColor: '#66BB6A',
+                backgroundColor: 'rgba(102, 187, 106, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,  // Curva suave
+                pointBackgroundColor: '#66BB6A',
+                pointBorderColor: '#FFFFFF',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 7
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: '#FFFFFF',
+                        stepSize: 1
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#FFFFFF'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                }
+            }
+        }
+    });
 }
 
 // ========== CLIMA ==========
@@ -535,8 +665,8 @@ function updateWeatherUI(data) {
     if (weatherIcon) weatherIcon.innerHTML = `<i class="${getWeatherIcon(data.weather[0].main)}"></i>`;
     if (weatherTemp) weatherTemp.textContent = Math.round(data.main.temp) + "°C";
     if (weatherMinMax) weatherMinMax.textContent = + Math.round(data.main.temp_min) + "°C -" + Math.round(data.main.temp_max) + "°C";
-if (weatherHumidity) weatherHumidity.innerHTML = `<i class="fa-solid fa-droplet"></i> ${data.main.humidity}%`;
-if (weatherWind) weatherWind.innerHTML = `<i class="fa-solid fa-wind"></i> ${Math.round(data.wind.speed * 3.6)} km/h`;
+    if (weatherHumidity) weatherHumidity.innerHTML = `<i class="fa-solid fa-droplet"></i> ${data.main.humidity}%`;
+    if (weatherWind) weatherWind.innerHTML = `<i class="fa-solid fa-wind"></i> ${Math.round(data.wind.speed * 3.6)} km/h`;
 }
 // ========== POMODORO ==========
 function pomodoroTimer() {
@@ -662,8 +792,8 @@ function setupAuthUI() {
 // ========== API AUTHENTICATION ==========
 // Detectar si estamos en Live Server o en XAMPP
 const API_URL = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost'
-    ? 'http://dashboard.local/api'  
-    : '/api'; 
+    ? 'http://dashboard.local/api'
+    : '/api';
 
 async function register(username, email, password) {
     try {
@@ -896,6 +1026,7 @@ function initDashboard() {
     setInterval(clock, 1000);
     taskManager();
     pomodoroTimer();
+    loadStats();
 }
 
 // ========== INICIALIZACIÓN ==========
