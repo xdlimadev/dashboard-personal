@@ -5,7 +5,7 @@
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 ![PHP](https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
-![Version](https://img.shields.io/badge/version-3.0-blue?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-3.1-blue?style=for-the-badge)
 ![Status](https://img.shields.io/badge/status-active-success?style=for-the-badge)
 
 Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador Pomodoro, widget del clima en tiempo real y **API REST completa** con PHP y MySQL.
@@ -34,10 +34,12 @@ Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador 
 - **Controles completos:** Play, pausa y reset
 
 ### 🌤️ Widget del Clima Inteligente
+- **API Key protegida:** Configuración de secretos no expuesta en el código
+- **Endpoint backend:** Peticiones al clima a través de tu servidor (seguridad)
 - **Geolocalización automática:** Detecta tu ubicación y muestra el clima local
 - **Configuración manual:** Busca cualquier ciudad del mundo
 - **Botón de cambio rápido:** Cambia de ubicación en un click
-- **Información completa:** Temperatura (mín/máx), humedad y velocidad del viento
+- **Información completa:** Temperatura actual, mín/máx, humedad y velocidad del viento
 - **Iconos dinámicos:** Cambian según las condiciones meteorológicas
 - **Actualización automática:** Cada 30 minutos
 - **API:** OpenWeatherMap (funciona globalmente)
@@ -51,7 +53,7 @@ Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador 
 - **Toast notifications:** Feedback visual para acciones de autenticación
 - **Encriptación de contraseñas:** Bcrypt para máxima seguridad
 - **Protección contra SQL injection:** Prepared statements en todas las queries
-- **API REST completa:** 9 endpoints JSON funcionales
+- **API REST completa:** 10 endpoints JSON funcionales
 - **Base de datos relacional:** MySQL con tablas relacionadas por FOREIGN KEY
 - **Seguridad por usuario:** Cada usuario solo puede ver/modificar sus propias tareas
 
@@ -92,7 +94,7 @@ Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador 
 - **REST API** - Arquitectura de endpoints
 
 ### APIs Externas
-- **OpenWeatherMap API** - Datos meteorológicos globales
+- **OpenWeatherMap API** - Datos meteorológicos globales (protegida en backend)
 
 ---
 
@@ -102,6 +104,7 @@ Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador 
 - **XAMPP** (Apache + MySQL + PHP) o equivalente
 - Navegador web moderno
 - Conexión a internet (para widget del clima)
+- Cuenta en OpenWeatherMap (API Key gratuita)
 
 ### Paso 1: Clonar el repositorio
 ```bash
@@ -154,13 +157,28 @@ private $username = "root";
 private $password = ""; // Tu contraseña de MySQL (vacío por defecto en XAMPP)
 ```
 
-### Paso 5: Configurar API del clima
-1. Regístrate gratis en [OpenWeatherMap](https://openweathermap.org/api)
-2. Obtén tu API Key
-3. En `script.js`, reemplaza:
-```javascript
-const API_KEY = "TU_API_KEY_AQUI";
+### Paso 5: Configurar secretos (API Keys)
+
+#### 1. Copia el archivo de ejemplo:
+```bash
+cp api/config/secrets.example.php api/config/secrets.php
 ```
+
+#### 2. Edita `api/config/secrets.php`:
+```php
+<?php
+return [
+    'weather_api_key' => 'TU_API_KEY_DE_OPENWEATHERMAP_AQUI',
+];
+```
+
+#### 3. Obtén tu API Key:
+1. Regístrate gratis en [OpenWeatherMap](https://openweathermap.org/api)
+2. Ve a tu perfil → API Keys
+3. Copia tu API Key
+4. Pégala en `secrets.php`
+
+> **⚠️ IMPORTANTE:** El archivo `secrets.php` está en `.gitignore` y **NUNCA se subirá a GitHub**. Esto protege tu API Key.
 
 ### Paso 6: Acceder al dashboard
 Abre en tu navegador:
@@ -183,18 +201,22 @@ dashboard-personal/
 ├── script.js               # Lógica del frontend
 ├── api/                    # Backend PHP
 │   ├── config/
-│   │   └── database.php    # Configuración de la BD
+│   │   ├── database.php        # Configuración de la BD
+│   │   ├── secrets.php         # Claves secretas (NO en Git)
+│   │   └── secrets.example.php # Plantilla de ejemplo
 │   ├── auth/
 │   │   ├── register.php        # Registro de usuarios
 │   │   ├── login.php           # Inicio de sesión
 │   │   ├── logout.php          # Cierre de sesión
 │   │   └── check_session.php   # Verificación de sesión activa
-│   └── tasks/
-│       ├── create.php      # Crear tarea
-│       ├── read.php        # Leer tareas
-│       ├── update.php      # Actualizar tarea (texto, estado)
-│       ├── update_order.php# Actualizar orden de tareas (batch)
-│       └── delete.php      # Eliminar tarea
+│   ├── tasks/
+│   │   ├── create.php      # Crear tarea
+│   │   ├── read.php        # Leer tareas
+│   │   ├── update.php      # Actualizar tarea (texto, estado)
+│   │   ├── update_order.php# Actualizar orden de tareas (batch)
+│   │   └── delete.php      # Eliminar tarea
+│   └── weather/
+│       └── get_weather.php # Proxy para API del clima (protege API Key)
 ├── .gitignore              # Archivos ignorados por Git
 └── README.md               # Este archivo
 ```
@@ -211,6 +233,8 @@ dashboard-personal/
 - ✅ **Protección por usuario:** Verificación de `user_id` en WHERE clauses
 - ✅ **HTTP Status Codes:** Respuestas apropiadas (200, 201, 400, 401, 404, 500)
 - ✅ **Exit después de errores:** Prevención de ejecución de código adicional
+- ✅ **API Keys protegidas:** Archivo `secrets.php` excluido de Git
+- ✅ **Proxy backend:** Las API Keys nunca se exponen al frontend
 
 ### Frontend
 - ✅ **Validación de formularios:** Prevención de datos vacíos
@@ -218,6 +242,7 @@ dashboard-personal/
 - ✅ **Sanitización de inputs:** Prevención de XSS
 - ✅ **Optimistic updates con rollback:** Reversión automática si falla el servidor
 - ✅ **Normalización de tipos:** Consistencia entre frontend y backend
+- ✅ **Sin API Keys expuestas:** Todas las peticiones pasan por el backend
 
 ---
 
@@ -486,6 +511,42 @@ Content-Type: application/json
 
 ---
 
+### 🌤️ Clima
+
+#### 10. Obtener datos del clima
+Endpoint proxy que protege la API Key de OpenWeatherMap.
+```http
+GET /weather/get_weather.php?city=Madrid
+```
+
+**O con coordenadas:**
+```http
+GET /weather/get_weather.php?lat=40.4168&lon=-3.7038
+```
+
+**Respuestas:**
+- `200 OK` - Datos del clima obtenidos
+```json
+{
+    "coord": {"lon": -3.7026, "lat": 40.4165},
+    "weather": [{"main": "Clear", "description": "cielo claro"}],
+    "main": {
+        "temp": 15.05,
+        "temp_min": 12.68,
+        "temp_max": 16.56,
+        "humidity": 53
+    },
+    "wind": {"speed": 2.06},
+    "name": "Madrid"
+}
+```
+- `400 Bad Request` - Parámetros requeridos no proporcionados
+- `500 Internal Server Error` - Error al obtener datos del clima
+
+> **Nota de seguridad:** La API Key de OpenWeatherMap nunca se expone al cliente. Todas las peticiones pasan por el backend.
+
+---
+
 ## 🧪 Pruebas de la API
 
 ### Con Thunder Client (VS Code)
@@ -515,6 +576,9 @@ curl -X POST http://dashboard.local/api/tasks/create.php \
 # Leer tareas
 curl -X GET http://dashboard.local/api/tasks/read.php \
   -b cookies.txt
+
+# Obtener clima
+curl -X GET http://dashboard.local/api/weather/get_weather.php?city=Madrid
 ```
 
 ---
@@ -594,6 +658,8 @@ El dashboard utiliza un sistema completo de variables CSS para fácil personaliz
 1. **Primera vez:** Permite geolocalización o busca tu ciudad
 2. **Cambiar:** Click en 📍 junto al nombre de la ciudad
 
+> **Nota:** La geolocalización solo funciona en HTTPS o localhost por seguridad del navegador.
+
 ### Usar el Pomodoro
 - **▶** Iniciar
 - **⏸** Pausar
@@ -621,17 +687,23 @@ El dashboard utiliza un sistema completo de variables CSS para fácil personaliz
 - Las sesiones funcionarán correctamente cuando conectes el frontend
 
 ### No aparece el clima
-- Verifica tu API Key de OpenWeatherMap
-- Comprueba que esté activa (puede tardar 10-15 min)
+- Verifica que hayas configurado correctamente `api/config/secrets.php`
+- Comprueba tu API Key de OpenWeatherMap (que esté activa, puede tardar 10-15 min)
 - Revisa la consola del navegador para errores
+- Prueba acceder directamente: `http://dashboard.local/api/weather/get_weather.php?city=Madrid`
 
-### Geolocalización no funciona en móvil
-- Requiere HTTPS (no funciona con HTTP en móviles)
-- Considera desplegar en GitHub Pages o Netlify
+### Error "secrets.php not found"
+- Copia `secrets.example.php` como `secrets.php` en `api/config/`
+- Añade tu API Key de OpenWeatherMap
+
+### Geolocalización no funciona
+- Requiere HTTPS (no funciona con HTTP en móviles/producción)
+- En desarrollo funciona con `localhost` pero no con `dashboard.local`
+- Considera desplegar en GitHub Pages, Netlify o Vercel (HTTPS automático)
 
 ### Tareas duplicadas al crear
 - Verifica que `taskManager()` se llame solo una vez en la inicialización
-- No debe estar dentro de `initDashboard()`
+- Verifica que tiene el atributo `data-listener` en el formulario
 
 ---
 
@@ -651,10 +723,13 @@ El dashboard utiliza un sistema completo de variables CSS para fácil personaliz
 - [x] Diseño responsive (ultrawide, Full HD, laptop, tablet)
 - [x] Normalización de tipos de datos
 - [x] Prevención de listeners duplicados
+- [x] **Protección de API Keys en backend**
+- [x] **Archivo de secretos excluido de Git**
+- [x] **Proxy backend para API del clima**
 
 ### Pendiente
 - [ ] Responsive para móviles (768px y menor)
-- [ ] Notas Rápidas guardadas en backend (actualmente en localStorage)
+- [ ] Notas Rápidas guardadas en backend
 - [ ] Recuperación de contraseña
 - [ ] Validación de email con código
 - [ ] Panel de administración de usuarios
@@ -702,18 +777,21 @@ Este proyecto es de código abierto y está disponible para uso personal y educa
 - PDO (Prepared Statements)
 - Sessions (Autenticación)
 - Password Hashing (BCRYPT)
-- REST API Design (CRUD completo + batch operations)
+- REST API Design (CRUD completo + batch operations + proxy endpoints)
 - JSON Manipulation
 - HTTP Status Codes
-- Security Best Practices
+- Security Best Practices (API Key protection, secrets management)
 - Data Normalization
+- Environment Variables Pattern
 
-### DevOps
+### DevOps & Security
 - Git & GitHub
+- .gitignore (secrets protection)
 - XAMPP Configuration
 - Virtual Hosts
 - phpMyAdmin
 - API Testing (Thunder Client)
+- Secrets Management (environment-based configuration)
 
 ---
 
@@ -721,5 +799,5 @@ Este proyecto es de código abierto y está disponible para uso personal y educa
 
 ---
 
-**Versión:** 3.0  
+**Versión:** 3.1  
 **Última actualización:** Febrero 2026

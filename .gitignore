@@ -13,6 +13,7 @@ node_modules/
 
 # Archivos específicos (si tienes)
 config.php
+api/config/secrets.php
 .env
 .CLAUDE.md
 

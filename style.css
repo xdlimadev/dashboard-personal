@@ -535,16 +535,22 @@ body {
 }
 
 .weather-logo {
-    font-size: 3rem;
+    font-size: 5rem;
     color: #FFFFFF;
     text-shadow: 0 4px 20px rgba(255, 255, 255, 0.3);
 }
 
 .weather-text p {
-    font-size: 1rem;
+    font-size: 0.8rem;
     color: #FFFFFF;
     text-align: center;
     margin: 8px 0;
+}
+
+.weather-text .temperature {
+    font-size: 1.5rem !important;  /* Grande */
+    font-weight: 700;
+    margin: 0;
 }
 
 .weather-details {
