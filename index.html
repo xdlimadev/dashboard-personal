@@ -149,10 +149,13 @@
         <section class="col-2">
             <div class="mid-card">
                 <div class="card">
-                    <div class="title-card">
+                    <div class="title-card notes-header">
                         <h2>Notas Rápidas</h2>
+                        <button id="btn-add-notes">+</button>
                     </div>
-                    <textarea id="quick-notes" placeholder="Escribe tus notas aquí..."></textarea>
+                    <div id="notes-container">
+                      
+                    </div>
                 </div>
             </div>
             <div class="mid-card">
@@ -196,7 +199,20 @@
                 <button id="retry-location-btn">Reintentar geolocalización</button>
             </div>
         </div>
-    </div> -->
+    </div>
+
+
+    <div id="notes-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Nueva Nota</h3>
+            <input type="text" id="notes-title-input" placeholder="Título...">
+            <textarea id="notes-content-input" placeholder="Contenido de la nota..."></textarea>
+            <div class="modal-buttons">
+                <button id="btn-save-note">Guardar</button>
+                <button id="btn-cancel-note">Cancelar</button>
+            </div>
+        </div>
+    </div>
 
     <div class="toast-container" id="toast-container"></div>
 

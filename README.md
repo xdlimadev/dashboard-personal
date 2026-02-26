@@ -6,14 +6,23 @@
 ![PHP](https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
 ![Chart.js](https://img.shields.io/badge/Chart.js-FF6384?style=for-the-badge&logo=chartdotjs&logoColor=white)
-![Version](https://img.shields.io/badge/version-3.2-blue?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-3.3-blue?style=for-the-badge)
 ![Status](https://img.shields.io/badge/status-active-success?style=for-the-badge)
 
-Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador Pomodoro, widget del clima en tiempo real, **estadísticas con gráficos interactivos** y **API REST completa** con PHP y MySQL.
+Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador Pomodoro, widget del clima en tiempo real, **notas rápidas con colores**, **estadísticas con gráficos interactivos** y **API REST completa** con PHP y MySQL.
 
 ---
 
 ## ✨ Características
+
+### 📝 Notas Rápidas **[NUEVO]**
+- **Tags de colores:** Cada nota se muestra como un tag con color aleatorio de una paleta predefinida
+- **Crear notas:** Modal con título y contenido
+- **Editar notas:** Click en el tag abre el modal con los datos para editar
+- **Eliminar notas:** Botón "✕" directo en el tag, sin pasos extra
+- **Persistencia local:** Guardadas en localStorage, disponibles sin necesidad de backend
+- **Colores únicos:** Color asignado al crear la nota y mantenido siempre
+- **Scroll automático:** El contenedor limita su altura y hace scroll si hay muchas notas
 
 ### 📋 Sistema de Tareas Kanban
 - **Tres columnas:** Pendientes, En Progreso y Completadas
@@ -29,7 +38,7 @@ Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador 
 - **Normalización de datos:** Tipos consistentes entre frontend y backend
 - **Tracking temporal:** Fecha de completado guardada para estadísticas
 
-### 📊 Estadísticas y Analytics **[NUEVO]**
+### 📊 Estadísticas y Analytics
 - **Gráfico Donut:** Visualización del estado actual de tareas (Pendientes, En Progreso, Completadas)
 - **Gráfico de Líneas:** Progreso de tareas completadas en los últimos 7 días
 - **Actualización en tiempo real:** Los gráficos se actualizan automáticamente al mover tareas
@@ -94,6 +103,7 @@ Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador 
 - **Drag & Drop API** - Interacción nativa HTML5
 - **Geolocation API** - Detección automática de ubicación
 - **Fetch API** - Consumo de APIs
+- **localStorage** - Persistencia de notas en el navegador
 - **Font Awesome** - Iconografía
 
 ### Backend
@@ -218,7 +228,7 @@ http://dashboard.local
 dashboard-personal/
 ├── index.html              # Página principal (incluye UI de login/registro)
 ├── style.css               # Estilos con variables CSS y responsive
-├── script.js               # Lógica del frontend + Chart.js
+├── script.js               # Lógica del frontend + Chart.js + Notas
 ├── api/                    # Backend PHP
 │   ├── config/
 │   │   ├── database.php        # Configuración de la BD
@@ -235,7 +245,7 @@ dashboard-personal/
 │   │   ├── update.php      # Actualizar tarea (texto, estado, completed_at)
 │   │   ├── update_order.php# Actualizar orden de tareas (batch)
 │   │   ├── delete.php      # Eliminar tarea
-│   │   └── stats.php       # Estadísticas (conteos y timeline) [NUEVO]
+│   │   └── stats.php       # Estadísticas (conteos y timeline)
 │   └── weather/
 │       └── get_weather.php # Proxy para API del clima (protege API Key)
 ├── .gitignore              # Archivos ignorados por Git
@@ -265,6 +275,7 @@ dashboard-personal/
 - ✅ **Optimistic updates con rollback:** Reversión automática si falla el servidor
 - ✅ **Normalización de tipos:** Consistencia entre frontend y backend
 - ✅ **Sin API Keys expuestas:** Todas las peticiones pasan por el backend
+- ✅ **Event propagation control:** `stopPropagation()` para evitar comportamientos no deseados
 
 ---
 
@@ -416,7 +427,7 @@ Content-Type: application/json
 
 ---
 
-### 📊 Estadísticas **[NUEVO]**
+### 📊 Estadísticas
 
 #### 10. Obtener estadísticas
 Devuelve conteos por estado y timeline de tareas completadas.
@@ -437,15 +448,6 @@ GET /tasks/stats.php
     ]
 }
 ```
-
-**Detalles:**
-- `pending`, `progress`, `completed`: Conteo actual de tareas en cada estado
-- `timeline`: Array con fechas y cantidad de tareas completadas en los últimos 7 días
-- Solo incluye días donde se completaron tareas (días sin tareas completadas no aparecen)
-
-**Uso:**
-- Gráfico Donut: Usa `pending`, `progress`, `completed`
-- Gráfico de Líneas: Usa `timeline`
 
 ---
 
@@ -470,13 +472,6 @@ GET /weather/get_weather.php?lat=40.4168&lon=-3.7038
 1. Instala la extensión "Thunder Client"
 2. Crea requests según la documentación
 3. Usa las sesiones para mantener la autenticación
-
-### Probar estadísticas
-```bash
-# Obtener stats (requiere sesión activa)
-curl -X GET http://dashboard.local/api/tasks/stats.php \
-  -b cookies.txt
-```
 
 ---
 
@@ -542,7 +537,13 @@ curl -X GET http://dashboard.local/api/tasks/stats.php \
 - **Eliminar:** Click en ✖
 - **Feedback visual:** Toast notifications para todas las acciones
 
-### Ver Estadísticas **[NUEVO]**
+### Notas Rápidas **[NUEVO]**
+- **Crear:** Click en "+" para abrir el modal, escribe título y contenido
+- **Ver/Editar:** Click en el tag de la nota para abrirla y editarla
+- **Eliminar:** Click en "✕" directamente en el tag
+- **Persistencia:** Las notas se guardan automáticamente en el navegador
+
+### Ver Estadísticas
 - **Gráfico Donut:** Muestra distribución actual de tareas
 - **Gráfico de Líneas:** Muestra progreso de los últimos 7 días
 - **Actualización automática:** Los gráficos se actualizan al mover tareas
@@ -575,14 +576,9 @@ ALTER TABLE tasks ADD COLUMN completed_at TIMESTAMP NULL AFTER task_order;
 - Asegúrate de que el CDN de Chart.js esté en el HTML antes de `script.js`
 - Verifica que `stats.php` devuelva datos correctos
 
-### Los gráficos están vacíos
-- Completa algunas tareas primero
-- Verifica en phpMyAdmin que las tareas completadas tengan `completed_at` no NULL
-- Si tienes tareas antiguas, ejecuta la migración de datos
-
-### Los colores del donut no se ven
-- Verifica que `maintainAspectRatio: false` esté en las opciones
-- Asegúrate de que los colores sean vibrantes (no oscuros)
+### Las notas no se guardan
+- Verifica que el navegador no tenga localStorage desactivado
+- Comprueba en DevTools → Application → localStorage que exista la clave `"notes"`
 
 ---
 
@@ -597,16 +593,20 @@ ALTER TABLE tasks ADD COLUMN completed_at TIMESTAMP NULL AFTER task_order;
 - [x] Variables CSS
 - [x] Diseño responsive (ultrawide, Full HD, laptop, tablet)
 - [x] Protección de API Keys
-- [x] **Sistema de estadísticas con gráficos**
-- [x] **Tracking de fecha de completado**
-- [x] **Actualización de gráficos en tiempo real**
+- [x] Sistema de estadísticas con gráficos
+- [x] Tracking de fecha de completado
+- [x] Actualización de gráficos en tiempo real
+- [x] **Notas rápidas con tags de colores**
+- [x] **Crear, editar y eliminar notas**
+- [x] **Persistencia en localStorage**
 
 ### Pendiente
 - [ ] Responsive para móviles (768px y menor)
+- [ ] Descripción en tareas
 - [ ] Filtros de timeline (últimos 30 días, por mes)
 - [ ] Estadísticas adicionales (tareas por día de la semana, productividad por hora)
 - [ ] Exportar gráficos como imagen
-- [ ] Crear Notas Rápidas guardadas en backend
+- [ ] Migrar notas a backend para persistencia multiusuario
 - [ ] Recuperación de contraseña
 - [ ] Modo oscuro/claro toggle
 - [ ] PWA (Progressive Web App)
@@ -642,6 +642,8 @@ Este proyecto es de código abierto y está disponible para uso personal y educa
 - DOM Manipulation
 - Drag & Drop API
 - Geolocation API
+- localStorage (persistencia en el navegador)
+- Event Bubbling y stopPropagation
 - Error Handling & Rollback Patterns
 
 ### Backend
@@ -674,5 +676,5 @@ Este proyecto es de código abierto y está disponible para uso personal y educa
 
 ---
 
-**Versión:** 3.2  
+**Versión:** 3.3  
 **Última actualización:** Febrero 2026
