@@ -16,6 +16,7 @@ config.php
 api/config/secrets.php
 .env
 .CLAUDE.md
+script.js
 
 #archivos de testing
 api/test_connection.php

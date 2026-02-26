@@ -1152,7 +1152,6 @@ function initDashboard() {
     loadNotes();
     renderNotes();
     setupNotesModal();
-
 }
 
 // ========== INICIALIZACIÓN ==========
