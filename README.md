@@ -228,7 +228,17 @@ http://dashboard.local
 dashboard-personal/
 ├── index.html              # Página principal (incluye UI de login/registro)
 ├── style.css               # Estilos con variables CSS y responsive
-├── script.js               # Lógica del frontend + Chart.js + Notas
+├── js/                     # Módulos JavaScript (arquitectura modular)
+│   ├── config.js           # Configuración global (API_URL)
+│   ├── toast.js            # Sistema de notificaciones
+│   ├── clock.js            # Reloj y fecha
+│   ├── auth.js             # Autenticación (login, registro, sesión)
+│   ├── stats.js            # Gráficos y estadísticas (Chart.js)
+│   ├── tasks.js            # Gestión de tareas (CRUD, drag & drop)
+│   ├── weather.js          # Widget del clima
+│   ├── pomodoro.js         # Temporizador Pomodoro
+│   ├── notes.js            # Notas rápidas (localStorage)
+│   └── app.js              # Inicialización y orquestación
 ├── api/                    # Backend PHP
 │   ├── config/
 │   │   ├── database.php        # Configuración de la BD
@@ -596,9 +606,10 @@ ALTER TABLE tasks ADD COLUMN completed_at TIMESTAMP NULL AFTER task_order;
 - [x] Sistema de estadísticas con gráficos
 - [x] Tracking de fecha de completado
 - [x] Actualización de gráficos en tiempo real
-- [x] **Notas rápidas con tags de colores**
-- [x] **Crear, editar y eliminar notas**
-- [x] **Persistencia en localStorage**
+- [x] Notas rápidas con tags de colores
+- [x] Crear, editar y eliminar notas
+- [x] Persistencia en localStorage
+- [x] **Arquitectura modular — script.js dividido en 10 módulos independientes**
 
 ### Pendiente
 - [ ] Responsive para móviles (768px y menor)
@@ -669,6 +680,8 @@ Este proyecto es de código abierto y está disponible para uso personal y educa
 - API Testing (Thunder Client)
 - Secrets Management
 - Environment-based configuration
+- **Arquitectura modular de JavaScript (separación por responsabilidad)**
+- **Gestión de dependencias entre módulos y orden de carga**
 
 ---
 
