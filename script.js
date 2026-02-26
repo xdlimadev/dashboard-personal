@@ -4,7 +4,7 @@ function clock() {
     const minutes = document.getElementById("minutes");
     const seconds = document.getElementById("seconds");
 
-    let now = new Date();
+    const now = new Date();
     let h = now.getHours();
     let m = now.getMinutes();
     let s = now.getSeconds();
@@ -25,19 +25,19 @@ function dateInfo() {
     const month = document.getElementById("month");
     const year = document.getElementById("year");
 
-    let now = new Date();
-    let d = now.getDay();
-    let m = now.getMonth();
-    let dayn = now.getDate();
-    let y = now.getFullYear();
+    const now = new Date();
+    const dayOfWeek  = now.getDay();
+    const monthIndex = now.getMonth();
+    const dayNumber  = now.getDate();
+    const fullYear   = now.getFullYear();
 
     const days = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
     const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
-    dayname.textContent = days[d];
-    daynum.textContent = dayn;
-    month.textContent = months[m];
-    year.textContent = y;
+    dayname.textContent = days[dayOfWeek];
+    daynum.textContent = dayNumber;
+    month.textContent = months[monthIndex];
+    year.textContent = fullYear;
 }
 
 // ========== TAREAS ==========
