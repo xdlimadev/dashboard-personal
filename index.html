@@ -16,8 +16,6 @@
     <div id="auth-screen" class="auth-screen">
         <div class="auth-container">
             <h1>Bienvenido</h1>
-
-            <!-- Login Form -->
             <div id="login-form" class="auth-form active">
                 <h2>Iniciar Sesión</h2>
                 <form id="login">
@@ -27,8 +25,6 @@
                 </form>
                 <p>¿No tienes cuenta? <a href="#" id="show-register">Regístrate</a></p>
             </div>
-
-            <!-- Register Form -->
             <div id="register-form" class="auth-form">
                 <h2>Crear Cuenta</h2>
                 <form id="register">
@@ -57,7 +53,6 @@
                     <span id="minutes">00</span> :
                     <span id="seconds">00</span>
                 </div>
-
                 <div id="date" class="date-section">
                     <span id="day-name"></span>,
                     <span id="day-number"></span> de
@@ -72,7 +67,6 @@
                     </p>
                 </blockquote>
             </div>
-
             <div class="small-card">
                 <div class="city-weather-info">
                     <p id="city-name" class="city-name"></p>
@@ -93,7 +87,6 @@
                     </div>
                 </div>
             </div>
-
         </section>
 
         <section class="col-1">
@@ -115,7 +108,6 @@
                                 <ul id="pending-list" data-state="pending">
                                 </ul>
                             </div>
-
                             <div class="progress-tasks">
                                 <h2>En progreso</h2>
                                 <ul id="progress-list" data-state="progress">
@@ -133,13 +125,10 @@
         </section>
 
         <section class="col-2">
-            <!-- Gráfico Donut - Estados -->
             <div class="mid-card">
                 <h3 class="title-card">Estado de Tareas</h3>
                 <canvas id="chart-donut"></canvas>
             </div>
-
-            <!-- Gráfico Líneas - Progreso -->
             <div class="mid-card">
                 <h3 class="title-card">Progreso (7 días)</h3>
                 <canvas id="chart-lines"></canvas>
@@ -154,7 +143,6 @@
                         <button id="btn-add-notes">+</button>
                     </div>
                     <div id="notes-container">
-                      
                     </div>
                 </div>
             </div>
@@ -179,15 +167,12 @@
                                 <button id="reset-pomodoro-btn"><i class="fas fa-redo"></i></button>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
-
         </section>
     </div>
 
-    <!-- Modal para configurar ciudad -->
     <div id="city-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <h3>Configurar ubicación</h3>
@@ -200,7 +185,6 @@
             </div>
         </div>
     </div>
-
 
     <div id="notes-modal" class="modal" style="display: none;">
         <div class="modal-content">
@@ -227,8 +211,6 @@
     <script src="js/pomodoro.js"></script>
     <script src="js/notes.js"></script>
     <script src="js/app.js"></script>
-
-    <!-- <script src="script.js"></script> -->
 </body>
 
 </html>

@@ -1,18 +1,18 @@
 function initDashboard() {
-    setupCityModal();
-    getDataWeather();
-    setInterval(getDataWeather, 1800000);
-    clock();
-    dateInfo();
-    setInterval(clock, 1000);
-    pomodoroTimer();
-    taskManager();
-    loadStats();
-    loadNotes();
-    renderNotes();
-    setupNotesModal();
+  getDataWeather();
+  clock();
+  dateInfo();
+  taskManager();
+  loadStats();
+  loadNotesFromAPI();
 }
 
 setupAuthUI();
 setupLogout();
+setupCityModal();
+setupNotesModal();
+setInterval(getDataWeather, 1800000);
+setInterval(clock, 1000);
+pomodoroTimer();
 checkSession();
+

@@ -6,7 +6,7 @@
 ![PHP](https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
 ![Chart.js](https://img.shields.io/badge/Chart.js-FF6384?style=for-the-badge&logo=chartdotjs&logoColor=white)
-![Version](https://img.shields.io/badge/version-3.3-blue?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-3.4-blue?style=for-the-badge)
 ![Status](https://img.shields.io/badge/status-active-success?style=for-the-badge)
 
 Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador Pomodoro, widget del clima en tiempo real, **notas rápidas con colores**, **estadísticas con gráficos interactivos** y **API REST completa** con PHP y MySQL.
@@ -15,12 +15,13 @@ Dashboard personal interactivo con gestión de tareas tipo Kanban, temporizador 
 
 ## ✨ Características
 
-### 📝 Notas Rápidas **[NUEVO]**
+### 📝 Notas Rápidas
 - **Tags de colores:** Cada nota se muestra como un tag con color aleatorio de una paleta predefinida
 - **Crear notas:** Modal con título y contenido
 - **Editar notas:** Click en el tag abre el modal con los datos para editar
 - **Eliminar notas:** Botón "✕" directo en el tag, sin pasos extra
-- **Persistencia local:** Guardadas en localStorage, disponibles sin necesidad de backend
+- **Persistencia en backend:** Guardadas en MySQL, disponibles en cualquier dispositivo
+- **Sistema multiusuario:** Cada usuario solo ve sus propias notas
 - **Colores únicos:** Color asignado al crear la nota y mantenido siempre
 - **Scroll automático:** El contenedor limita su altura y hace scroll si hay muchas notas
 
@@ -168,6 +169,17 @@ CREATE TABLE tasks (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Tabla de notas
+CREATE TABLE notes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    content TEXT,
+    color VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ```
 
 #### Migración de datos (si tienes tareas antiguas)
@@ -237,7 +249,7 @@ dashboard-personal/
 │   ├── tasks.js            # Gestión de tareas (CRUD, drag & drop)
 │   ├── weather.js          # Widget del clima
 │   ├── pomodoro.js         # Temporizador Pomodoro
-│   ├── notes.js            # Notas rápidas (localStorage)
+│   ├── notes.js            # Notas rápidas (backend)
 │   └── app.js              # Inicialización y orquestación
 ├── api/                    # Backend PHP
 │   ├── config/
@@ -256,6 +268,11 @@ dashboard-personal/
 │   │   ├── update_order.php# Actualizar orden de tareas (batch)
 │   │   ├── delete.php      # Eliminar tarea
 │   │   └── stats.php       # Estadísticas (conteos y timeline)
+│   ├── notes/
+│   │   ├── create.php      # Crear nota
+│   │   ├── read.php        # Leer notas
+│   │   ├── update.php      # Actualizar nota
+│   │   └── delete.php      # Eliminar nota
 │   └── weather/
 │       └── get_weather.php # Proxy para API del clima (protege API Key)
 ├── .gitignore              # Archivos ignorados por Git
@@ -461,7 +478,72 @@ GET /tasks/stats.php
 
 ---
 
-### 🌤️ Clima
+### 📝 Notas **[NUEVO]**
+
+> **Nota:** Todos estos endpoints requieren que el usuario esté autenticado.
+
+#### 12. Crear nota
+```http
+POST /notes/create.php
+Content-Type: application/json
+
+{
+    "title": "Mi nota",
+    "content": "Contenido de la nota",
+    "color": "rgba(167, 113, 245, 0.5)"
+}
+```
+**Respuestas:**
+- `201 Created` - Nota creada correctamente
+- `400 Bad Request` - Título vacío
+
+---
+
+#### 13. Leer notas
+```http
+GET /notes/read.php
+```
+**Respuesta exitosa (200 OK):**
+```json
+{
+    "notes": [
+        {
+            "id": 1,
+            "title": "Mi nota",
+            "content": "Contenido",
+            "color": "rgba(167, 113, 245, 0.5)"
+        }
+    ]
+}
+```
+
+---
+
+#### 14. Actualizar nota
+```http
+PUT /notes/update.php
+Content-Type: application/json
+
+{
+    "id": 1,
+    "title": "Título actualizado",
+    "content": "Contenido actualizado"
+}
+```
+
+---
+
+#### 15. Eliminar nota
+```http
+DELETE /notes/delete.php
+Content-Type: application/json
+
+{
+    "id": 1
+}
+```
+
+---
 
 #### 11. Obtener datos del clima
 Endpoint proxy que protege la API Key de OpenWeatherMap.
@@ -608,8 +690,11 @@ ALTER TABLE tasks ADD COLUMN completed_at TIMESTAMP NULL AFTER task_order;
 - [x] Actualización de gráficos en tiempo real
 - [x] Notas rápidas con tags de colores
 - [x] Crear, editar y eliminar notas
-- [x] Persistencia en localStorage
-- [x] **Arquitectura modular — script.js dividido en 10 módulos independientes**
+- [x] Arquitectura modular — script.js dividido en 10 módulos independientes
+- [x] **Notas migradas a backend (MySQL) con CRUD completo**
+- [x] **Corrección de completed_at en reordenamiento de tareas**
+- [x] **Corrección de listeners duplicados entre sesiones**
+- [x] **Separación de setup y carga de datos en inicialización**
 
 ### Pendiente
 - [ ] Responsive para móviles (768px y menor)
@@ -689,5 +774,5 @@ Este proyecto es de código abierto y está disponible para uso personal y educa
 
 ---
 
-**Versión:** 3.3  
+**Versión:** 3.4  
 **Última actualización:** Febrero 2026

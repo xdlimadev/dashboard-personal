@@ -635,7 +635,13 @@ body {
     max-width: 500px;
     width: 90%;
     text-align: center;
+    animation: scaleIn 0.5s ease;
 }
+@keyframes scaleIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
 
 .modal-content h3 {
     color: #a771f5;
@@ -648,6 +654,8 @@ body {
     margin-bottom: 15px;
     line-height: 1.6;
 }
+
+
 
 #city-input {
     width: 100%;
@@ -1199,6 +1207,8 @@ body:not(.authenticated):not(.not-authenticated) section {
 #btn-cancel-note:hover {
     background: rgba(255, 255, 255, 0.2);
 }
+
+
 
 
 

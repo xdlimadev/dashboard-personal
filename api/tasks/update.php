@@ -2,7 +2,7 @@
 session_start();
 
 header('Access-Control-Allow-Origin: *');
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=UTF-8');
 header('Access-Control-Allow-Methods: PUT');
 
 require_once '../config/database.php';
@@ -19,7 +19,12 @@ $conn = $database->getConnection();
 $data = json_decode(file_get_contents('php://input'));
 
 if (!empty($data->id)) {
-    $query = "UPDATE tasks SET text = :text, state = :state, task_order = :task_order, completed_at = CASE WHEN :state_check = 'completed' THEN NOW() ELSE NULL END  
+    $query = "UPDATE tasks SET text = :text, state = :state, task_order = :task_order, 
+    completed_at = CASE 
+            WHEN :state_check = 'completed' AND completed_at IS NULL THEN NOW() 
+            WHEN :state_check != 'completed' THEN NULL 
+            ELSE completed_at 
+        END  
         WHERE id = :task_id AND user_id = :user_id";
 
     $stmt = $conn->prepare($query);
@@ -28,7 +33,7 @@ if (!empty($data->id)) {
     $stmt->bindParam(':task_id', $data->id);
     $stmt->bindParam(':text', $data->text);
     $stmt->bindParam(':state', $data->state);
-    $stmt->bindParam(':state_check', $data->state);  // ← Para el CASE WHEN
+    $stmt->bindParam(':state_check', $data->state);
     $stmt->bindParam(':task_order', $data->task_order);
 
     if ($stmt->execute()) {
